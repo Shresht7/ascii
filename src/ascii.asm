@@ -111,9 +111,14 @@ _start:
     cmp al, 127
     ja .err_out_of_ascii_bounds     ; Error: Out of ASCII Bounds (0..127)
 
-    ; Check for -f flag
     cmp byte [rsi], '-'
     jne .process_chars
+
+    ; Check for -h flag
+    cmp byte [rsi+1], 'h'
+    je .usage
+
+    ; Check for -f flag
     cmp byte [rsi+1], 'f'
     je .full_table
 
