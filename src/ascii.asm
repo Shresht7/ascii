@@ -48,14 +48,14 @@ section .data
     separator db ' '
     separator_len equ $ - separator
 
-    hex_prefix db "0x"
-    hex_prefix_len equ $ - hex_prefix
+    hex db "0x"
+    hex_len equ $ - hex
 
-    oct_prefix db "0o"
-    oct_prefix_len equ $ - oct_prefix
+    oct db "0o"
+    oct_len equ $ - oct
 
-    bin_prefix db "0b"
-    bin_prefix_len equ $ - bin_prefix
+    bin db "0b"
+    bin_len equ $ - bin
 
 ; ------------------
 ; UNINITIALIZED DATA
@@ -104,19 +104,19 @@ _start:
     print separator
 
     ; Print hexadecimal representation
-    repr hex_prefix, 16
+    repr hex, 16
 
     ; Print space separator
     print separator
 
     ; Print octal representation
-    repr oct_prefix, 8
+    repr oct, 8
 
     ; Print space separator
     print separator
 
     ; Print binary representation
-    repr bin_prefix, 2
+    repr bin, 2
 
     ; Write newline
     print newline
