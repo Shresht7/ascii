@@ -48,6 +48,9 @@ section .data
     separator db ' '
     separator_len equ $ - separator
 
+    hex_prefix db "0x"
+    hex_prefix_len equ $ - hex_prefix
+
     oct_prefix db "0o"
     oct_prefix_len equ $ - oct_prefix
 
@@ -83,6 +86,15 @@ _start:
     ; Print decimal representation
     mov rdi, r12
     mov rsi, 10
+    call convert
+
+    ; Print space separator
+    print separator
+
+    ; Print hexadecimal representation
+    print hex_prefix
+    mov rdi, r12
+    mov rsi, 16
     call convert
 
     ; Print space separator
