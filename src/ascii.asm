@@ -60,6 +60,9 @@ section .data
     bin db "0b"
     bin_len equ $ - bin
 
+    err_out_of_ascii_bounds_msg db "Error: Out of bounds for ASCII. Should be a valid ASCII character between 0 and 127", 0xA
+    err_out_of_ascii_bounds_msg_len equ $ - err_out_of_ascii_bounds_msg
+
 ; ------------------
 ; UNINITIALIZED DATA
 ; ------------------
@@ -99,6 +102,15 @@ _start:
     ; argv[1] contains the first arugment (if it exists) and is at [rsp + 16] (8 * 2)
     mov rsi, [rsp+16]       ; argv[1]
     mov al, [rsi]           ; first character (pointer to rsi)
+
+    ; Check that argv[1] is not empty
+    cmp al, 0
+    je .usage               ; empty string, show usage
+
+    ; Check ASCII range (0..127)
+    cmp al, 127
+    ja .err_out_of_ascii_bounds     ; Error: Out of ASCII Bounds (0..127)
+
     movzx r12, al           ; Save original value in r12
 
     ; Print decimal representation
@@ -128,10 +140,17 @@ _start:
     ; Exit with Success Status Code
     exit EXIT_SUCCESS
 
+; ERROR BRANCHES
+; --------------
+
 ; Print the usage message and exit
 .usage:
     print usage_msg
     exit EXIT_FAILURE
+
+.err_out_of_ascii_bounds:
+    print err_out_of_ascii_bounds_msg
+    exit 1
 
 ; --------
 ; ROUTINES
