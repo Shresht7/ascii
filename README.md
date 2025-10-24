@@ -4,6 +4,8 @@ An ASCII lookup command-line-interface.
 
 ---
 
+<!-- Lore: 86th Repository on my GitHub -->
+
 ## 📦 Development
 
 Written in `x86_64` Assembly for Linux.
