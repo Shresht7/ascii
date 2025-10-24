@@ -4,10 +4,13 @@
 ; DEFINITIONS
 ; -----------
 
-%define SYS_WRITE   1
-%define SYS_EXIT    60
+%define SYS_WRITE       1
+%define SYS_EXIT        60
 
-%define FD_STDOUT   1
+%define FD_STDOUT       1
+
+%define EXIT_SUCCESS    0
+%define EXIT_FAILURE    1
 
 ; ------
 ; MACROS
@@ -48,4 +51,6 @@ section .text
 
 _start:
     print hello_world
-    exit 0
+
+    ; Exit with Success Status Code
+    exit EXIT_SUCCESS
