@@ -54,6 +54,9 @@ section .data
     oct_prefix db "0o"
     oct_prefix_len equ $ - oct_prefix
 
+    bin_prefix db "0b"
+    bin_prefix_len equ $ - bin_prefix
+
 ; ------------------
 ; UNINITIALIZED DATA
 ; ------------------
@@ -105,6 +108,15 @@ _start:
     mov rdi, r12
     mov rsi, 8
     call convert
+
+    ; Print space separator
+    print separator
+
+    ; Print binary representation
+    print bin_prefix
+    mov rdi, r12
+    mov rsi, 2
+    call convert    
 
     ; Write newline
     print newline
