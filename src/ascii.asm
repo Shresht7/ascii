@@ -48,6 +48,9 @@ section .data
     separator db ' '
     separator_len equ $ - separator
 
+    ten db ""           ; dec is a keyword so... ten it is
+    ten_len equ 0
+
     hex db "0x"
     hex_len equ $ - hex
 
@@ -71,6 +74,8 @@ section .bss
 section .text
     global _start
 
+; Prints the correct representation
+; %1 = repr prefix (or empty), %2 = base
 %macro repr 2
     ; Print the appropriate prefix
     print %1 
@@ -78,6 +83,7 @@ section .text
     mov rdi, r12    ; The number to convert
     mov rsi, %2     ; The conersion base
     call convert
+
 %endmacro
 
 ; The main entrypoint of the application
@@ -96,9 +102,7 @@ _start:
     movzx r12, al           ; Save original value in r12
 
     ; Print decimal representation
-    mov rdi, r12
-    mov rsi, 10
-    call convert
+    repr ten, 10            ; No prefix after repr => decimal representation
 
     ; Print space separator
     print separator
