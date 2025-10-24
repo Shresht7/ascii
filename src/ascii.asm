@@ -71,6 +71,15 @@ section .bss
 section .text
     global _start
 
+%macro repr 2
+    ; Print the appropriate prefix
+    print %1 
+    ; Prepare call arguments
+    mov rdi, r12    ; The number to convert
+    mov rsi, %2     ; The conersion base
+    call convert
+%endmacro
+
 ; The main entrypoint of the application
 _start:
     ; Retrieve argument count (argc)
@@ -95,28 +104,19 @@ _start:
     print separator
 
     ; Print hexadecimal representation
-    print hex_prefix
-    mov rdi, r12
-    mov rsi, 16
-    call convert
+    repr hex_prefix, 16
 
     ; Print space separator
     print separator
 
     ; Print octal representation
-    print oct_prefix
-    mov rdi, r12
-    mov rsi, 8
-    call convert
+    repr oct_prefix, 8
 
     ; Print space separator
     print separator
 
     ; Print binary representation
-    print bin_prefix
-    mov rdi, r12
-    mov rsi, 2
-    call convert    
+    repr bin_prefix, 2
 
     ; Write newline
     print newline
