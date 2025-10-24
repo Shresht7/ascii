@@ -39,8 +39,8 @@
 ; ----------------
 
 section .data
-    hello_world db "Hello World!", 0xA
-    hello_world_len equ $ - hello_world
+    usage_msg db "Usage: ascii <char>", 0xA
+    usage_msg_len equ $ - usage_msg
 
 ; ----
 ; CODE
@@ -49,8 +49,18 @@ section .data
 section .text
     global _start
 
+; The main entrypoint of the application
 _start:
-    print hello_world
+    ; Retrieve argument count (argc)
+    ; When the program starts, rsp points to argc
+    mov rax, [rsp]          ; Move argc value into rax
+    cmp rax, 2              ; Compare argc with 2 (program_name + first_argument)
+    jl .usage               ; less than 2 => Insufficient Arguments. Show Usage message 
 
     ; Exit with Success Status Code
     exit EXIT_SUCCESS
+
+; Print the usage message and exit
+.usage:
+    print usage_msg
+    exit EXIT_FAILURE
