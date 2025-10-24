@@ -111,6 +111,13 @@ _start:
     cmp al, 127
     ja .err_out_of_ascii_bounds     ; Error: Out of ASCII Bounds (0..127)
 
+    ; Check for -f flag
+    cmp byte [rsi], '-'
+    jne .process_chars
+    cmp byte [rsi+1], 'f'
+    je .full_table
+
+.process_chars:
     movzx r12, al           ; Save original value in r12
 
     ; Print decimal representation
@@ -137,6 +144,27 @@ _start:
     ; Write newline
     print newline
 
+    jmp .done
+
+.full_table:
+    xor r12, r12            ; Counter = 0
+    .table_loop:
+        call print_char
+        mov rdi, r12
+        repr ten, 10
+        print separator
+        repr hex, 16
+        print separator
+        repr oct, 8
+        print separator
+        repr bin, 2
+        print newline
+        inc r12
+        cmp r12, 128
+        jne .table_loop         ; Loop until 128
+        jmp .done
+
+.done:
     ; Exit with Success Status Code
     exit EXIT_SUCCESS
 
@@ -155,6 +183,34 @@ _start:
 ; --------
 ; ROUTINES
 ; --------
+
+; Print the character itself (uses '.' for non-printable characters)
+print_char:
+    mov rax, r12
+    cmp rax, 32
+    jb .non_printable
+    cmp rax, 126
+    ja .non_printable
+    mov [buf], rax
+    mov rsi, buf
+    mov rdx, 1
+    mov rax, SYS_WRITE
+    mov rdi, FD_STDOUT
+    syscall
+    jmp .done
+
+    .non_printable:
+        mov byte [buf], '.'
+        mov rsi, buf
+        mov rdx, 1
+        mov rax, SYS_WRITE
+        mov rdi, FD_STDOUT
+        syscall
+
+    .done:
+        print separator
+        ret
+
 
 ; convert: rdi = number, rsi = base (e.g. 10, 16, 8, 2)
 ; Prints the appropriate representation
