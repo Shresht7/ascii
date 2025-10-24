@@ -80,106 +80,20 @@ _start:
     mov al, [rsi]           ; first character (pointer to rsi)
     movzx r12, al           ; Save original value in r12
 
-    ; DECIMAL CONVERSION: Write decimal digits into buffer
+    ; Print decimal representation
+    mov rdi, r12
+    mov rsi, 10
+    call convert
 
-    ; Prepare buffer pointer - fill from end
-    lea rdi, [buf+31]       ; rdi will point to end; we'll decrement before writing digits
-    xor rcx, rcx            ; digit count. Zero out for start
-    mov rbx, r12            ; working copy
-
-    ; handle value == 0. specially (print "0")
-    cmp rbx, 0
-    jne .dec_loop
-
-    dec rdi
-    mov byte [rdi], '0'
-    inc rcx
-    jmp .dec_done
-
-.dec_loop:
-    ; Standard division loop:
-    ; rbx = value
-    ; we want (quotient, remainder) = value / 10
-    mov rax, rbx        
-    xor rdx, rdx        ; Zero out rdx
-    mov r10, 10
-    div r10             ; quotient -> rax, remainder -> rdx
-    add dl, '0'         ; Ascii offset for 0 (as a string)
-    dec rdi
-    mov [rdi], dl
-    mov rbx, rax        ; new value = quotient
-    inc rcx
-
-    test rax, rax
-    jnz .dec_loop
-
-.dec_done:
-    ; write decimal number
-    ; rdi -> pointer to first digit (we decremented before storing)
-    ; rcx -> number of digits
-    ; Save values before write macro clobbers them
-    mov rsi, rdi        ; buffer pointer
-    mov rdx, rcx        ; byte count
-
-
-    ; Write decimal string
-    mov rax, SYS_WRITE
-    mov rdi, FD_STDOUT
-    ; rsi and rdx are already set
-    syscall
-
-    ; Write space separator
+    ; Print space separator
     print separator
 
-;   OCTAL CONVERSION
-.octal:
-    ; Print prefix first
+    ; Print octal representation
     print oct_prefix
+    mov rdi, r12
+    mov rsi, 8
+    call convert
 
-    ; Convert r12 to octal, reuse buffer
-    lea rdi, [buf+31]       ; Reset buffer pointer
-    xor rdx, rdx            ; zero out rdx
-    xor rcx, rcx            ; zero out rcx
-    mov rbx, r12            ; Working copy
-
-    cmp rbx, 0
-    jne .oct_loop
-
-    dec rdi
-    mov byte [rdi], '0'
-    inc rcx
-    jmp .oct_done
-
-.oct_loop:
-    mov rax, rbx
-    xor rdx, rdx
-    mov r10, 8
-    div r10             ; quotient -> rax, remainder -> rdx
-    add dl, '0'
-    dec rdi
-    mov [rdi], dl
-    mov rbx, rax
-    inc rcx
-    test rax, rax
-    jnz .oct_loop
-
-.oct_done:
-    ; Write octal digits
-    ; rdi -> pointer to first digit (we decremented before storing)
-    ; rcx -> number of digits
-    ; Save values before write macro clobbers them
-    mov rsi, rdi        ; buffer pointer
-    mov rdx, rcx        ; byte count
-
-
-    ; Write decimal string
-    mov rax, SYS_WRITE
-    mov rdi, FD_STDOUT
-    ; rsi and rdx are already set
-    syscall
-
-
-.after_conversion:
     ; Write newline
     print newline
 
@@ -190,3 +104,59 @@ _start:
 .usage:
     print usage_msg
     exit EXIT_FAILURE
+
+; --------
+; ROUTINES
+; --------
+
+; convert: rdi = number, rsi = base (e.g. 10, 16, 8, 2)
+; Prints the appropriate representation
+convert:
+    lea rbx, [buf+31]
+    xor rcx, rcx
+    mov rax, rdi
+    mov r8, rsi         ; Store base -> r8 for later reuse 
+
+    cmp rax, 0
+    jne .loop
+
+    dec rbx
+    mov byte [rbx], '0'
+    inc rcx
+    jmp .done
+
+    .loop:
+        xor rdx, rdx
+        div r8          ; divide rax by base, remainder in rdx
+        mov dl, dl      ; remainder in dl
+
+        cmp rdx, 9
+        jg .hex_digit
+        add dl, '0'
+        jmp .store
+
+    .hex_digit:
+        add dl, 'A' - 10
+
+    .store:
+        dec rbx
+        mov [rbx], dl
+        inc rcx
+        test rax, rax
+        jnz .loop
+
+    .done:
+        ; Write digits
+        ; rbx -> pointer to first digit (we decremented before storing)
+        ; rcx -> number of digits
+        ; Save values before write macro clobbers them
+        mov rsi, rbx        ; buffer pointer
+        mov rdx, rcx        ; byte count
+
+        ; Write number string
+        mov rax, SYS_WRITE
+        mov rdi, FD_STDOUT
+        ; rsi and rdx are already set
+        syscall
+        ret
+
