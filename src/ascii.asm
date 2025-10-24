@@ -43,6 +43,7 @@ section .data
     usage_msg_len equ $ - usage_msg
 
     newline db 0xA
+    newline_len equ 1
 
 ; ------------------
 ; UNINITIALIZED DATA
@@ -120,7 +121,7 @@ _start:
     syscall
 
     ; Write newline
-    write FD_STDOUT, newline, 1
+    print newline
 
     ; Exit with Success Status Code
     exit EXIT_SUCCESS
