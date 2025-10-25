@@ -35,17 +35,21 @@ const tableData = originalRows.map(row => {
 });
 
 const SCORE = {
-    CHAR_EXACT: 100,
-    CHAR_PARTIAL: 50,
-    OTHER_EXACT: 20,
-    OTHER_PARTIAL: 10,
+    CHAR_EXACT: 1000,
+    CHAR_PARTIAL: 500,
+    DEC_EXACT: 100,
+    DEC_PARTIAL: 50,
+    HEX_EXACT: 40,
+    HEX_PARTIAL: 20,
+    BIN_EXACT: 15,
+    BIN_PARTIAL: 10,
+    OCT_EXACT: 5,
+    OCT_PARTIAL: 2,
 };
 
 /**
- * Caculates the search score based on row and search term
  * @param {RowData} rowData 
  * @param {string} searchTerm 
- * @returns The search match score
  */
 function calculateScore(rowData, searchTerm) {
     let score = 0;
@@ -58,29 +62,32 @@ function calculateScore(rowData, searchTerm) {
         score += SCORE.CHAR_PARTIAL;
     }
 
-    // Other columns
+    // Decimal column
     if (rowData.dec === searchTerm) {
-        score += SCORE.OTHER_EXACT;
+        score += SCORE.DEC_EXACT;
     } else if (rowData.dec.includes(searchTerm)) {
-        score += SCORE.OTHER_PARTIAL;
+        score += SCORE.DEC_PARTIAL;
     }
 
+    // Hex column
     if (rowData.hex === searchTerm) {
-        score += SCORE.OTHER_EXACT;
+        score += SCORE.HEX_EXACT;
     } else if (rowData.hex.includes(searchTerm)) {
-        score += SCORE.OTHER_PARTIAL;
+        score += SCORE.HEX_PARTIAL;
     }
 
-    if (rowData.oct === searchTerm) {
-        score += SCORE.OTHER_EXACT;
-    } else if (rowData.oct.includes(searchTerm)) {
-        score += SCORE.OTHER_PARTIAL;
-    }
-
+    // Binary column
     if (rowData.bin === searchTerm) {
-        score += SCORE.OTHER_EXACT;
+        score += SCORE.BIN_EXACT;
     } else if (rowData.bin.includes(searchTerm)) {
-        score += SCORE.OTHER_PARTIAL;
+        score += SCORE.BIN_PARTIAL;
+    }
+
+    // Octal column
+    if (rowData.oct === searchTerm) {
+        score += SCORE.OCT_EXACT;
+    } else if (rowData.oct.includes(searchTerm)) {
+        score += SCORE.OCT_PARTIAL;
     }
 
     return score;
