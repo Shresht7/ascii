@@ -187,4 +187,8 @@ function updateTable() {
 // EVENT LISTENER
 // --------------
 
-searchInput.addEventListener('input', updateTable);
+searchInput.addEventListener('input', () => {
+    document.startViewTransition(() => {
+        updateTable()
+    })
+});
