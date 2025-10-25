@@ -31,7 +31,8 @@
     /* Primary Color Palette */
     --clr-primary-text: oklch(98% 0.01 0);
 
-    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -75,13 +76,14 @@ header {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 1rem;
+    gap: 2rem;
 }
 
 hr {
     width: 100%;
     border: none;
     height: 1px;
+    margin-block: 0.75rem;
     background-color: var(--clr-border);
 }
 
@@ -91,13 +93,21 @@ hr {
     font-size: 1.25em;
     border-radius: 8px;
     border: 1px solid var(--clr-border);
-    background-color: var(--clr-background);
+    background-color: var(--clr-surface-2);
     color: var(--clr-text-primary);
 }
 
 /* ----------- */
 /* ASCII TABLE */
 /* ----------- */
+
+main {
+    background-color: var(--clr-surface-1);
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--clr-border);
+    margin-block: 0.75rem;
+}
 
 #ascii-table {
     width: 100%;
@@ -119,7 +129,10 @@ hr {
 #ascii-table thead {
     background-color: var(--clr-surface-1);
     position: sticky;
-    top: 4px;
+    top: 0px;
+    background-color: var(--clr-surface-2);
+    border-bottom: 8px solid var(--clr-border);
+    box-shadow: var(--shadow-md);
 }
 
 /* Zebra-striping for readability, can be enabled if desired */
