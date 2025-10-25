@@ -32,16 +32,28 @@ body {
     background-color: var(--clr-background);
     font-family: var(--font-family);
     margin: 0 auto;
+    padding: 1rem 2rem;
 }
 
-body {
-    display: grid;
-    place-content: center;
+header {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+}
+
+hr {
+    width: 100%;
+    color: var(--clr-gray-200);
+    opacity: 0.5;
+    margin-block: 0.25rem;
 }
 
 #search-input {
     width: 100%;
-    padding: 0.5rem 0.75rem;
+    padding: 0.75rem 1rem;
+    font-size: 1.25em;
     border-radius: 8px;
 }
 
