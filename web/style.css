@@ -89,12 +89,20 @@ hr {
 
 #search-input {
     width: 100%;
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 1.5rem;
     font-size: 1.25em;
     border-radius: 8px;
-    border: 1px solid var(--clr-border);
+    border: 3px solid var(--clr-border);
     background-color: var(--clr-surface-2);
     color: var(--clr-text-primary);
+
+    &::selection {
+        background-color: var(--clr-primary);
+    }
+
+    &::placeholder {
+        font-style: italic;
+    }
 }
 
 /* ----------- */
