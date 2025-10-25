@@ -1,5 +1,18 @@
 :root {
-    --clr-text: rebeccapurple;
+    --clr-purple: rebeccapurple;
+    --clr-white: #F7F8F9;
+    --clr-black: #3E3E3E;
+
+    --clr-gray-100: color-mix(in srgb, var(--clr-white) 90%, var(--clr-black));
+    --clr-gray-200: color-mix(in srgb, var(--clr-white) 80%, var(--clr-black));
+    --clr-gray-300: color-mix(in srgb, var(--clr-white) 70%, var(--clr-black));
+    --clr-gray-400: color-mix(in srgb, var(--clr-white) 60%, var(--clr-black));
+    --clr-gray-500: color-mix(in srgb, var(--clr-white) 50%, var(--clr-black));
+
+    --clr-text: var(--clr-purple);
+    --clr-background: var(--clr-background);
+
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 *,
@@ -12,5 +25,53 @@
 
 html,
 body {
+    width: 100vw;
+    max-width: 960px;
+    min-height: 100vh;
     color: var(--clr-text);
+    background-color: var(--clr-background);
+    font-family: var(--font-family);
+    margin: 0 auto;
+}
+
+body {
+    display: grid;
+    place-content: center;
+}
+
+#search-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+}
+
+#ascii-table {
+    width: 100%;
+}
+
+#ascii-table td,
+#ascii-table th {
+    text-align: right;
+    border: 1px solid var(--clr-gray-100);
+    padding: 0.75rem;
+}
+
+#ascii-table th {
+    font-weight: bold;
+}
+
+#ascii-table thead {
+    background-color: var(--clr-gray-500);
+}
+
+#ascii-table tbody tr:nth-child(even) {
+    background-color: var(--clr-gray-200);
+}
+
+#ascii-table tr td:first-child {
+    font-weight: bold;
+}
+
+#ascii-table tbody tr:hover {
+    background-color: var(--clr-gray-300);
 }
