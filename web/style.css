@@ -26,7 +26,7 @@
 html,
 body {
     width: 100vw;
-    max-width: 960px;
+    max-width: 1080px;
     min-height: 100vh;
     color: var(--clr-text);
     background-color: var(--clr-background);
