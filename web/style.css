@@ -3,20 +3,43 @@
 /* ------------- */
 
 :root {
-    --clr-purple: rebeccapurple;
-    --clr-white: #F7F8F9;
-    --clr-black: #3E3E3E;
+    /* Base color */
+    --clr-base-primary: rebeccapurple;
 
-    --clr-gray-100: color-mix(in srgb, var(--clr-white) 90%, var(--clr-black));
-    --clr-gray-200: color-mix(in srgb, var(--clr-white) 80%, var(--clr-black));
-    --clr-gray-300: color-mix(in srgb, var(--clr-white) 70%, var(--clr-black));
-    --clr-gray-400: color-mix(in srgb, var(--clr-white) 60%, var(--clr-black));
-    --clr-gray-500: color-mix(in srgb, var(--clr-white) 50%, var(--clr-black));
+    /* --- Light Theme (Default) --- */
+    --clr-base-bg-lch: 98% 0.01 280;
+    --clr-base-text-lch: 10% 0.02 280;
 
-    --clr-text: var(--clr-purple);
-    --clr-background: var(--clr-white);
+    /* Convert LCH values to actual colors */
+    --clr-background: oklch(var(--clr-base-bg-lch));
+    --clr-text: oklch(var(--clr-base-text-lch));
+    --clr-primary: var(--clr-base-primary);
+
+    /* Text Palette */
+    --clr-text-primary: var(--clr-text);
+    --clr-text-secondary: color-mix(in oklch, var(--clr-text) 70%, var(--clr-background));
+
+    /* Surface Palette */
+    --clr-surface-1: color-mix(in oklch, var(--clr-background) 95%, var(--clr-text));
+    --clr-surface-2: color-mix(in oklch, var(--clr-background) 90%, var(--clr-text));
+
+    /* Border & Interaction Palette */
+    --clr-border: color-mix(in oklch, var(--clr-background) 85%, var(--clr-text));
+    --clr-hover: var(--clr-surface-2);
+    --clr-focus-ring: color-mix(in oklch, var(--clr-primary) 25%, transparent);
+
+    /* Primary Color Palette */
+    --clr-primary-text: oklch(98% 0.01 0);
 
     --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* --- Dark Theme --- */
+        --clr-base-bg-lch: 10% 0.02 280;
+        --clr-base-text-lch: 98% 0.01 280;
+    }
 }
 
 /* ------------- */
@@ -36,7 +59,7 @@ body {
     width: 100vw;
     max-width: 1080px;
     min-height: 100vh;
-    color: var(--clr-text);
+    color: var(--clr-text-primary);
     background-color: var(--clr-background);
     font-family: var(--font-family);
     margin: 0 auto;
@@ -57,9 +80,9 @@ header {
 
 hr {
     width: 100%;
-    color: var(--clr-gray-200);
-    opacity: 0.5;
-    margin-block: 0.25rem;
+    border: none;
+    height: 1px;
+    background-color: var(--clr-border);
 }
 
 #search-input {
@@ -67,6 +90,9 @@ hr {
     padding: 0.75rem 1rem;
     font-size: 1.25em;
     border-radius: 8px;
+    border: 1px solid var(--clr-border);
+    background-color: var(--clr-background);
+    color: var(--clr-text-primary);
 }
 
 /* ----------- */
@@ -82,7 +108,7 @@ hr {
 #ascii-table td,
 #ascii-table th {
     text-align: right;
-    border: 1px solid var(--clr-gray-100);
+    border: 1px solid var(--clr-border);
     padding: 0.75rem;
 }
 
@@ -91,14 +117,14 @@ hr {
 }
 
 #ascii-table thead {
-    background-color: var(--clr-gray-300);
+    background-color: var(--clr-surface-1);
     position: sticky;
     top: 4px;
 }
 
 /* Zebra-striping for readability, can be enabled if desired */
 /* #ascii-table tbody tr:nth-child(even) {
-    background-color: var(--clr-gray-200);
+    background-color: var(--clr-surface-2);
 } */
 
 #ascii-table tr td:first-child {
@@ -106,7 +132,7 @@ hr {
 }
 
 #ascii-table tbody tr:hover {
-    background-color: var(--clr-gray-100);
+    background-color: var(--clr-hover);
 }
 
 /* --------------- */
@@ -118,6 +144,6 @@ hr {
 }
 
 .highlight {
-    background-color: var(--clr-purple);
-    color: var(--clr-white);
+    background-color: var(--clr-primary);
+    color: var(--clr-primary-text);
 }
