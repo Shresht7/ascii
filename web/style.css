@@ -43,6 +43,10 @@ header {
     gap: 1rem;
 }
 
+.hidden {
+    display: none !important;
+}
+
 hr {
     width: 100%;
     color: var(--clr-gray-200);
@@ -73,17 +77,17 @@ hr {
 }
 
 #ascii-table thead {
-    background-color: var(--clr-gray-500);
+    background-color: var(--clr-gray-300);
 }
 
-#ascii-table tbody tr:nth-child(even) {
+/* #ascii-table tbody tr:nth-child(even) {
     background-color: var(--clr-gray-200);
-}
+} */
 
 #ascii-table tr td:first-child {
     font-weight: bold;
 }
 
 #ascii-table tbody tr:hover {
-    background-color: var(--clr-gray-300);
+    background-color: var(--clr-gray-100);
 }
