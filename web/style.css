@@ -1,3 +1,7 @@
+/* ------------- */
+/* CSS VARIABLES */
+/* ------------- */
+
 :root {
     --clr-purple: rebeccapurple;
     --clr-white: #F7F8F9;
@@ -14,6 +18,10 @@
 
     --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
+
+/* ------------- */
+/* GLOBAL STYLES */
+/* ------------- */
 
 *,
 *::before,
@@ -35,16 +43,16 @@ body {
     padding: 1rem 2rem;
 }
 
+/* ----------------- */
+/* HEADER AND SEARCH */
+/* ----------------- */
+
 header {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     gap: 1rem;
-}
-
-.hidden {
-    display: none !important;
 }
 
 hr {
@@ -61,8 +69,14 @@ hr {
     border-radius: 8px;
 }
 
+/* ----------- */
+/* ASCII TABLE */
+/* ----------- */
+
 #ascii-table {
     width: 100%;
+    /* Improved table border handling */
+    border-collapse: collapse;
 }
 
 #ascii-table td,
@@ -74,8 +88,6 @@ hr {
 
 #ascii-table th {
     font-weight: bold;
-    background-color: var(--clr-purple);
-    color: var(--clr-white);
 }
 
 #ascii-table thead {
@@ -84,6 +96,7 @@ hr {
     top: 4px;
 }
 
+/* Zebra-striping for readability, can be enabled if desired */
 /* #ascii-table tbody tr:nth-child(even) {
     background-color: var(--clr-gray-200);
 } */
@@ -94,4 +107,17 @@ hr {
 
 #ascii-table tbody tr:hover {
     background-color: var(--clr-gray-100);
+}
+
+/* --------------- */
+/* UTILITY CLASSES */
+/* --------------- */
+
+.hidden {
+    display: none !important;
+}
+
+.highlight {
+    background-color: var(--clr-purple);
+    color: var(--clr-white);
 }
