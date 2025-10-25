@@ -51,7 +51,7 @@ const SCORE = {
  * @param {RowData} rowData 
  * @param {string} searchTerm 
  */
-function calculateScore(rowData, searchTerm) {
+function calculateWeightedScore(rowData, searchTerm) {
     let score = 0;
     if (!searchTerm) { return 0; }
 
@@ -94,24 +94,53 @@ function calculateScore(rowData, searchTerm) {
 }
 
 function updateTable() {
-    const searchTerm = searchInput.value.toLowerCase();
+    const rawSearchTerm = searchInput.value.toLowerCase();
+    let searchTerm = rawSearchTerm;
+    let searchMode = 'weighted'; // 'weighted', 'hex', 'oct', 'bin'
 
-    // if search term is empty, show all rows in original order
-    if (!searchTerm) {
+    if (searchTerm.startsWith('0x') && searchTerm.length > 2) {
+        searchMode = 'hex';
+        searchTerm = searchTerm.substring(2);
+    } else if (searchTerm.startsWith('0o') && searchTerm.length > 2) {
+        searchMode = 'oct';
+        searchTerm = searchTerm.substring(2);
+    } else if (searchTerm.startsWith('0b') && searchTerm.length > 2) {
+        searchMode = 'bin';
+        searchTerm = searchTerm.substring(2);
+    }
+
+    if (!rawSearchTerm) {
+        // Restore original order and show all
         originalRows.forEach(row => {
             tableBody.appendChild(row);
-            row.classList.remove('hidden');
-        });
-        // remove highlight from all rows
-        tableData.forEach(rowData => {
-            rowData.element.classList.remove('highlight');
+            row.classList.remove('hidden', 'highlight');
         });
         return;
     }
 
     // Calculate scores
     tableData.forEach(rowData => {
-        rowData.score = calculateScore(rowData, searchTerm);
+        let score = 0;
+        const MAX_SCORE = 10000;
+        switch (searchMode) {
+            case 'hex':
+                if (rowData.hex === searchTerm) { score = MAX_SCORE; }
+                else if (rowData.hex.includes(searchTerm)) { score = MAX_SCORE / 2; }
+                break;
+            case 'oct':
+                if (rowData.oct === searchTerm) { score = MAX_SCORE; }
+                else if (rowData.oct.includes(searchTerm)) { score = MAX_SCORE / 2; }
+                break;
+            case 'bin':
+                if (rowData.bin === searchTerm) { score = MAX_SCORE; }
+                else if (rowData.bin.includes(searchTerm)) { score = MAX_SCORE / 2; }
+                break;
+            case 'weighted':
+            default:
+                score = calculateWeightedScore(rowData, searchTerm);
+                break;
+        }
+        rowData.score = score;
     });
 
     // Filter and sort
