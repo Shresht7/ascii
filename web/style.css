@@ -10,7 +10,7 @@
     --clr-gray-500: color-mix(in srgb, var(--clr-white) 50%, var(--clr-black));
 
     --clr-text: var(--clr-purple);
-    --clr-background: var(--clr-background);
+    --clr-background: var(--clr-white);
 
     --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
@@ -74,6 +74,8 @@ hr {
 
 #ascii-table th {
     font-weight: bold;
+    background-color: var(--clr-purple);
+    color: var(--clr-white);
 }
 
 #ascii-table thead {

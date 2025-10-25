@@ -17,7 +17,6 @@ searchInput.addEventListener('input', () => {
         const rowText = row.textContent.toLowerCase()
         const matches = rowText.includes(searchTerm)
         row.classList.toggle('hidden', !matches)
-        row.classList.toggle('highlight', matches)
     }
 })
 
