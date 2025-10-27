@@ -8,6 +8,7 @@ import { ASCII_DATA } from './data.js';
 const searchInput = /** @type {HTMLInputElement} */ (document.getElementById('search-input'));
 const asciiTable = /** @type {HTMLTableElement} */ (document.getElementById('ascii-table'));
 const tableBody = /** @type {HTMLTableSectionElement} */ (asciiTable.tBodies[0]);
+const noResultsMessage = /** @type {HTMLParagraphElement} */ (document.getElementById('no-results-message'));
 
 // ----------------
 // DATA PREPARATION
@@ -138,6 +139,7 @@ function updateTable() {
 
     // If the search box is cleared, restore the table to its original state.
     if (!rawSearchTerm) {
+        noResultsMessage.classList.add('hidden');
         originalRows.forEach(row => {
             tableBody.appendChild(row);
             row.classList.remove('hidden', 'highlight');
@@ -178,6 +180,13 @@ function updateTable() {
 
     // Hide all rows to prepare for re-ordering.
     originalRows.forEach(row => row.classList.add('hidden'));
+
+    if (sortedData.length === 0) {
+        noResultsMessage.textContent = `No results for "${rawSearchTerm}"`;
+        noResultsMessage.classList.remove('hidden');
+    } else {
+        noResultsMessage.classList.add('hidden');
+    }
 
     // Append the sorted rows back into the table and apply the highlight style.
     // This re-orders the DOM elements based on the search score.
