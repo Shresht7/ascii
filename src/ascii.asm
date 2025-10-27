@@ -1,5 +1,11 @@
 ; ASCII Lookup
 
+; --------
+; INCLUDES
+; --------
+
+%include "src/lib/strings.asm"
+
 ; -----------
 ; DEFINITIONS
 ; -----------
@@ -44,6 +50,11 @@ section .data
               db "  -f, --full      Display the full ASCII table.", 0xA
               db "  -h, --help      Display this help message.", 0xA
     usage_msg_len equ $ - usage_msg
+
+    arg_help db "--help", 0
+    arg_full db "--full", 0
+    arg_h db "-h", 0
+    arg_f db "-f", 0
 
     newline db 0xA
     newline_len equ $ - newline
@@ -103,6 +114,36 @@ _start:
     ; Retrieve the first command-line argument argv[1]
     ; argv[0] contains the program-name and is at [rsp + 8] (8 bits offset from rsp (argc))
     ; argv[1] contains the first arugment (if it exists) and is at [rsp + 16] (8 * 2)
+    mov rdi, [rsp+16]       ; argv[1]
+
+    ; Check for --help
+    mov rsi, arg_help
+    call strcmp
+    cmp rax, 0
+    je .usage
+
+    ; Check for -h
+    mov rdi, [rsp+16]
+    mov rsi, arg_h
+    call strcmp
+    cmp rax, 0
+    je .usage
+
+    ; Check for --full
+    mov rdi, [rsp+16]
+    mov rsi, arg_full
+    call strcmp
+    cmp rax, 0
+    je .full_table
+
+    ; Check for -f
+    mov rdi, [rsp+16]
+    mov rsi, arg_f
+    call strcmp
+    cmp rax, 0
+    je .full_table
+
+    ; If no flag matches, process as a character
     mov rsi, [rsp+16]       ; argv[1]
     mov al, [rsi]           ; first character (pointer to rsi)
 
@@ -113,17 +154,6 @@ _start:
     ; Check ASCII range (0..127)
     cmp al, 127
     ja .err_out_of_ascii_bounds     ; Error: Out of ASCII Bounds (0..127)
-
-    cmp byte [rsi], '-'
-    jne .process_chars
-
-    ; Check for -h flag
-    cmp byte [rsi+1], 'h'
-    je .usage
-
-    ; Check for -f flag
-    cmp byte [rsi+1], 'f'
-    je .full_table
 
 .process_chars:
     movzx r12, al           ; Save original value in r12
