@@ -199,7 +199,49 @@ function updateTable() {
 // --------------
 
 searchInput.addEventListener('input', () => {
+    updateURL(searchInput.value)
     document.startViewTransition(() => {
         updateTable()
     })
 });
+
+// ------------
+// URL HANDLING
+// ------------
+
+/**
+ * @param {string} query The URL Search Query
+ */
+function updateURL(query) {
+    const url = new URL(window.location.href);
+    if (query) {
+        url.searchParams.set('q', query);
+    } else {
+        url.searchParams.delete('q');
+    }
+    history.replaceState({}, '', url.toString());
+}
+
+function getSearchQueryFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('q');
+}
+
+// --------------
+// INITIALIZATION
+// --------------
+
+/** The initialization logic */
+function init() {
+    const query = getSearchQueryFromURL();
+    if (query) {
+        searchInput.value = query;
+    }
+
+    document.startViewTransition(() => updateTable());
+    searchInput.addEventListener('input', () => {
+        document.startViewTransition(() => updateTable());
+    });
+}
+
+init();
