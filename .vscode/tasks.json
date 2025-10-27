@@ -1,0 +1,39 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "📦 Build",
+            "dependsOn": [
+                "Compile",
+                "Link"
+            ]
+        },
+        {
+            "label": "Compile",
+            "type": "shell",
+            "command": "nasm",
+            "args": [
+                "-f",
+                "elf64",
+                "${workspaceFolder}/src/ascii.asm",
+                "-o",
+                "${workspaceFolder}/obj/ascii.o"
+            ],
+        },
+        {
+            "label": "Link",
+            "type": "shell",
+            "command": "ld",
+            "args": [
+                "${workspaceFolder}/obj/ascii.o",
+                "-o",
+                "${workspaceFolder}/out/ascii"
+            ],
+            "dependsOn": [
+                "Compile"
+            ]
+        }
+    ]
+}
