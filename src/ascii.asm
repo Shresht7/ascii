@@ -39,7 +39,10 @@
 ; ----------------
 
 section .data
-    usage_msg db "Usage: ascii <char>", 0xA
+    usage_msg db "Usage: ascii <character> | [flag]", 0xA, 0xA
+              db "Flags:", 0xA
+              db "  -f, --full      Display the full ASCII table.", 0xA
+              db "  -h, --help      Display this help message.", 0xA
     usage_msg_len equ $ - usage_msg
 
     newline db 0xA
