@@ -118,6 +118,7 @@ main {
 
 #ascii-table {
     width: 100%;
+    table-layout: fixed;
     /* Improved table border handling */
     border-collapse: collapse;
 }
