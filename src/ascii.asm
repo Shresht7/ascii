@@ -1,11 +1,5 @@
 ; ASCII Lookup
 
-; --------
-; INCLUDES
-; --------
-
-%include "src/lib/strings.asm"
-
 ; -----------
 ; DEFINITIONS
 ; -----------
@@ -39,6 +33,13 @@
     mov rdi, %1         ; exit status code
     syscall
 %endmacro
+
+; --------
+; INCLUDES
+; --------
+
+%include "src/lib/chars.asm"
+%include "src/lib/strings.asm"
 
 ; ----------------
 ; INITIALIZED DATA
@@ -221,34 +222,6 @@ _start:
 ; --------
 ; ROUTINES
 ; --------
-
-; Print the character itself (uses '.' for non-printable characters)
-print_char:
-    mov rax, r12
-    cmp rax, 32
-    jb .non_printable
-    cmp rax, 126
-    ja .non_printable
-    mov [buf], rax
-    mov rsi, buf
-    mov rdx, 1
-    mov rax, SYS_WRITE
-    mov rdi, FD_STDOUT
-    syscall
-    jmp .done
-
-    .non_printable:
-        mov byte [buf], '.'
-        mov rsi, buf
-        mov rdx, 1
-        mov rax, SYS_WRITE
-        mov rdi, FD_STDOUT
-        syscall
-
-    .done:
-        print separator
-        ret
-
 
 ; convert: rdi = number, rsi = base (e.g. 10, 16, 8, 2)
 ; Prints the appropriate representation
