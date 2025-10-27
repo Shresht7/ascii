@@ -1,9 +1,21 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect x="2" y="2" width="28" height="28" rx="2" fill="white"/>
-<rect x="21" y="17.8334" width="2" height="9.16667" fill="black"/>
-<rect x="9" y="17.8334" width="2" height="9.16667" fill="black"/>
-<rect x="23" y="16" width="1.83333" height="14" transform="rotate(90 23 16)" fill="black"/>
-<rect x="11" y="17.8334" width="2" height="8.25" transform="rotate(-180 11 17.8334)" fill="black"/>
-<rect x="23" y="17.8334" width="2" height="8.25" transform="rotate(180 23 17.8334)" fill="black"/>
-<path d="M22 9.58333L16 5L10 9.58333" stroke="black" stroke-width="2" stroke-linecap="round"/>
+    <style>
+        :root {
+            --clr-background: white;
+            --clr-stroke: black;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --clr-background: black;
+                --clr-stroke: white;
+            }
+        }
+    </style>
+<rect x="2" y="2" width="28" height="28" rx="2" fill="var(--clr-background)"/>
+<rect x="21" y="17.8334" width="2" height="9.16667" fill="var(--clr-stroke)"/>
+<rect x="9" y="17.8334" width="2" height="9.16667" fill="var(--clr-stroke)"/>
+<rect x="23" y="16" width="1.83333" height="14" transform="rotate(90 23 16)" fill="var(--clr-stroke)"/>
+<rect x="11" y="17.8334" width="2" height="8.25" transform="rotate(-180 11 17.8334)" fill="var(--clr-stroke)"/>
+<rect x="23" y="17.8334" width="2" height="8.25" transform="rotate(180 23 17.8334)" fill="var(--clr-stroke)"/>
+<path d="M22 9.58333L16 5L10 9.58333" stroke="var(--clr-stroke)" stroke-width="2" stroke-linecap="round"/>
 </svg>
