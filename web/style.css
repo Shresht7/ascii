@@ -7,7 +7,7 @@
     --clr-base-primary: rebeccapurple;
 
     /* --- Light Theme (Default) --- */
-    --clr-base-bg-lch: 98% 0.01 280;
+    --clr-base-bg-lch: 95% 0.01 280;
     --clr-base-text-lch: 10% 0.02 280;
 
     /* Convert LCH values to actual colors */
@@ -139,7 +139,7 @@ main {
     position: sticky;
     top: 0px;
     background-color: var(--clr-surface-2);
-    border-bottom: 8px solid var(--clr-border);
+    border-bottom: 4px solid var(--clr-border);
     box-shadow: var(--shadow-md);
 }
 
