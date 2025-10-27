@@ -1,4 +1,5 @@
 //@ts-check
+import { ASCII_DATA } from './data.js';
 
 // ------------
 // DOM ELEMENTS
@@ -7,7 +8,6 @@
 const searchInput = /** @type {HTMLInputElement} */ (document.getElementById('search-input'));
 const asciiTable = /** @type {HTMLTableElement} */ (document.getElementById('ascii-table'));
 const tableBody = /** @type {HTMLTableSectionElement} */ (asciiTable.tBodies[0]);
-const originalRows = Array.from(tableBody.getElementsByTagName('tr'));
 
 // ----------------
 // DATA PREPARATION
@@ -26,22 +26,33 @@ const originalRows = Array.from(tableBody.getElementsByTagName('tr'));
  */
 
 /**
- * An array of RowData objects, parsed from the static HTML table on page load.
- * This avoids repeated DOM queries and provides a fast, structured way to search.
+ * An array of RowData objects, built from the ASCII_DATA source.
+ * This provides a fast, structured way to search and links data to the generated DOM elements.
  * @type {RowData[]}
  */
-const tableData = originalRows.map(row => {
-    const cells = row.getElementsByTagName('td');
+const tableData = ASCII_DATA.map(item => {
+    const row = tableBody.insertRow();
+    row.innerHTML = `
+        <td>${item.char}</td>
+        <td>${item.dec}</td>
+        <td>${item.hex}</td>
+        <td>${item.oct}</td>
+        <td>${item.bin}</td>
+    `;
+
     return {
-        char: cells[0].textContent.toLowerCase(),
-        dec: cells[1].textContent.toLowerCase(),
-        hex: cells[2].textContent.toLowerCase(),
-        oct: cells[3].textContent.toLowerCase(),
-        bin: cells[4].textContent.toLowerCase(),
+        char: item.char.toLowerCase(),
+        dec: item.dec.toLowerCase(),
+        hex: item.hex.toLowerCase(),
+        oct: item.oct.toLowerCase(),
+        bin: item.bin.toLowerCase(),
         score: 0,
         element: row
     };
 });
+
+const originalRows = [...tableBody.rows];
+
 
 // --------------
 // SEARCH SCORING
