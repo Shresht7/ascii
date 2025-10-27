@@ -67,6 +67,13 @@ print_char:
     mov rax, SYS_WRITE
     mov rdi, FD_STDOUT
     syscall
+
+    ; Add three spaces for padding
+    mov rsi, three_spaces
+    mov rdx, three_spaces_len
+    mov rax, SYS_WRITE
+    mov rdi, FD_STDOUT
+    syscall
     jmp .done
 
 ; Handle control characters (0-31)
