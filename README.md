@@ -1,6 +1,6 @@
 # `ascii`
 
-An ASCII lookup command-line-interface.
+An ASCII lookup command-line-interface and web reference.
 
 **American Standard Code for Information Interchange (ASCII)** is a character-encoding standard that assigns a unique number rainging from 0 to 127 to letters, digits, and symbols. For example, uppercase 'A' is represented by the decimal `65` (or `1000001` in binary). It is a 7-bit encoding system based on the English alphabet representing upto 128 characters.
 
@@ -36,6 +36,16 @@ Run the executable followed by the character you wish to see the encoding of:
 > **Note**
 >
 > The tool only considers the first character of the argument.
+
+### Help
+
+```
+Usage: ascii <character> | [flag]
+
+Flags:
+  -f, --full      Display the full ASCII table.
+  -h, --help      Display this help message.
+```
 
 ### Flags
 
