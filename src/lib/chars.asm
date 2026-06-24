@@ -61,7 +61,7 @@ print_char:
     je .is_del_char
 
     ; Printable characters (32-126)
-    mov [buf], rax
+    mov [buf], al
     mov rsi, buf
     mov rdx, 1
     mov rax, SYS_WRITE
