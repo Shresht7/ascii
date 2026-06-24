@@ -33,6 +33,16 @@ Run the executable followed by the character you wish to see the encoding of:
 83 0x53 0o123 0b1010011
 ```
 
+```sh
+./ascii A B C
+```
+
+```sh
+65 0x41 0o101 0b1000001
+66 0x42 0o102 0b1000010
+67 0x43 0o103 0b1000011
+```
+
 > **Note**
 >
 > The tool only considers the first character of each argument.
@@ -56,7 +66,6 @@ Character mode accepts multiple arguments and prints one line per argument.
 ```sh
 ./ascii -h  # For help message
 ./ascii -f  # Full ASCII Table
-./ascii A B C
 ```
 
 ---
