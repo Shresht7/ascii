@@ -35,12 +35,12 @@ Run the executable followed by the character you wish to see the encoding of:
 
 > **Note**
 >
-> The tool only considers the first character of the argument.
+> The tool only considers the first character of each argument.
 
 ### Help
 
 ```
-Usage: ascii <character> | [flag]
+Usage: ascii <character> [character ...] | [flag]
 
 Flags:
   -f, --full      Display the full ASCII table.
@@ -51,9 +51,12 @@ Flags:
 
 All flags must be passed immediately after the executable name.
 
+Character mode accepts multiple arguments and prints one line per argument.
+
 ```sh
 ./ascii -h  # For help message
 ./ascii -f  # Full ASCII Table
+./ascii A B C
 ```
 
 ---

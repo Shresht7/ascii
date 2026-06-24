@@ -46,7 +46,7 @@
 ; ----------------
 
 section .data
-    usage_msg db "Usage: ascii <character> | [flag]", 0xA, 0xA
+    usage_msg db "Usage: ascii <character> [character ...] | [flag]", 0xA, 0xA
               db "Flags:", 0xA
               db "  -f, --full      Display the full ASCII table.", 0xA
               db "  -h, --help      Display this help message.", 0xA
@@ -108,9 +108,12 @@ section .text
 _start:
     ; Retrieve argument count (argc)
     ; When the program starts, rsp points to argc
-    mov rax, [rsp]          ; Move argc value into rax
-    cmp rax, 2              ; Compare argc with 2 (program_name + first_argument)
-    jl .usage               ; less than 2 => Insufficient Arguments. Show Usage message 
+    mov r13, [rsp]          ; Move argc value into r13
+    cmp r13, 2              ; Compare argc with 2 (program_name + first_argument)
+    jl usage                ; less than 2 => Insufficient Arguments. Show Usage message 
+
+    cmp r13, 2
+    jne process_args
 
     ; Retrieve the first command-line argument argv[1]
     ; argv[0] contains the program-name and is at [rsp + 8] (8 bits offset from rsp (argc))
@@ -121,42 +124,63 @@ _start:
     mov rsi, arg_help
     call strcmp
     cmp rax, 0
-    je .usage
+    je usage
 
     ; Check for -h
     mov rdi, [rsp+16]
     mov rsi, arg_h
     call strcmp
     cmp rax, 0
-    je .usage
+    je usage
 
     ; Check for --full
     mov rdi, [rsp+16]
     mov rsi, arg_full
     call strcmp
     cmp rax, 0
-    je .full_table
+    je full_table
 
     ; Check for -f
     mov rdi, [rsp+16]
     mov rsi, arg_f
     call strcmp
     cmp rax, 0
-    je .full_table
+    je full_table
 
-    ; If no flag matches, process as a character
-    mov rsi, [rsp+16]       ; argv[1]
-    mov al, [rsi]           ; first character (pointer to rsi)
+    call process_char_arg
+    jmp done
+
+process_args:
+    lea r14, [rsp+16]       ; &argv[1]
+    mov r15, 1              ; argv index
+
+    .arg_loop:
+        cmp r15, r13
+        je done
+
+        mov rdi, [r14]
+        mov al, [rdi]
+        cmp al, '-'
+        je usage
+
+        call process_char_arg
+        add r14, 8
+        inc r15
+        jmp .arg_loop
+
+; Validate and print the first character from argv[i]
+; rdi = pointer to the argument string
+process_char_arg:
+    mov al, [rdi]           ; first character (pointer to rdi)
 
     ; Check that argv[1] is not empty
     cmp al, 0
-    je .usage               ; empty string, show usage
+    je usage                ; empty string, show usage
 
     ; Check ASCII range (0..127)
     cmp al, 127
-    ja .err_out_of_ascii_bounds     ; Error: Out of ASCII Bounds (0..127)
+    ja err_out_of_ascii_bounds      ; Error: Out of ASCII Bounds (0..127)
 
-.process_chars:
     movzx r12, al           ; Save original value in r12
 
     ; Print decimal representation
@@ -182,10 +206,9 @@ _start:
 
     ; Write newline
     print newline
+    ret
 
-    jmp .done
-
-.full_table:
+full_table:
     xor r12, r12            ; Counter = 0
     .table_loop:
         call print_char
@@ -201,9 +224,9 @@ _start:
         inc r12
         cmp r12, 128
         jne .table_loop         ; Loop until 128
-        jmp .done
+        jmp done
 
-.done:
+    done:
     ; Exit with Success Status Code
     exit EXIT_SUCCESS
 
@@ -211,11 +234,11 @@ _start:
 ; --------------
 
 ; Print the usage message and exit
-.usage:
+usage:
     print usage_msg
     exit EXIT_FAILURE
 
-.err_out_of_ascii_bounds:
+err_out_of_ascii_bounds:
     print err_out_of_ascii_bounds_msg
     exit 1
 
