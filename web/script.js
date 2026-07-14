@@ -27,19 +27,25 @@ const noResultsMessage = /** @type {HTMLParagraphElement} */ (document.getElemen
  */
 
 /**
+ * An array of the field names used in the RowData structure.
+ * This is useful for iterating over the fields when performing searches or updates.
+ * @type {('char' | 'dec' | 'hex' | 'oct' | 'bin')[]}
+ */
+const CELL_FIELDS = ['char', 'dec', 'hex', 'oct', 'bin'];
+
+/**
  * An array of RowData objects, built from the ASCII_DATA source.
  * This provides a fast, structured way to search and links data to the generated DOM elements.
  * @type {RowData[]}
  */
 const tableData = ASCII_DATA.map(item => {
     const row = tableBody.insertRow();
-    row.innerHTML = `
-        <td>${item.char}</td>
-        <td>${item.dec}</td>
-        <td>${item.hex}</td>
-        <td>${item.oct}</td>
-        <td>${item.bin}</td>
-    `;
+
+    CELL_FIELDS.forEach(field => {
+        const cell = row.insertCell();
+        cell.textContent = item[field];
+        cell.dataset.value = item[field];
+    });
 
     return {
         char: item.char.toLowerCase(),
