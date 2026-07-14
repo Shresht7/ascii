@@ -70,6 +70,17 @@ Character mode accepts multiple arguments and prints one line per argument.
 
 ---
 
+## Web
+
+An interactive ASCII reference webpage is available at **[shresht7.github.io/ascii](https://shresht7.github.io/ascii)**.
+
+- **Search**: find any character or code (decimal, hex, octal, binary). Prefix with `0x`, `0o`, or `0b` for targeted searches.
+- **Converter**: type a multi-character string to see each character's `glyph`, `DEC`, `HEX`, `OCT`, and `BIN` values.
+- **Copy**: click any table cell to copy its value; click a converter row to copy the entire line.
+- **Keyboard shortcuts**: press `/` to focus the search, `Esc` to clear and blur.
+
+---
+
 <!-- Lore: 86th Repository on my GitHub -->
 
 ## 📦 Development
