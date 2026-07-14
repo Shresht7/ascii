@@ -220,7 +220,7 @@ function getSearchQueryFromURL() {
 /** The duration for which the "Copied!" feedback message is displayed after a successful copy action. */
 const COPY_FEEDBACK_MS = 1000;
 
-/** @type {Map<HTMLTableCellElement, number>} */
+/** @type {Map<HTMLTableCellElement, NodeJS.Timeout>} */
 const activeCopyTimeouts = new Map();
 
 /**
