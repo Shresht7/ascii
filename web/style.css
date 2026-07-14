@@ -132,11 +132,6 @@ main {
     color: var(--clr-text-secondary);
 }
 
-.table-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-}
-
 #ascii-table {
     width: 100%;
     table-layout: fixed;
