@@ -213,6 +213,11 @@ main {
     color: var(--clr-primary-text);
 }
 
+.exact-match {
+    background-color: gold;
+    color: #1a1a1a;
+}
+
 .visually-hidden {
     position: absolute;
     width: 1px;
