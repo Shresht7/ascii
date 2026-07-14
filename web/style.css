@@ -195,6 +195,32 @@ main {
     background-color: var(--clr-hover);
 }
 
+/* ------- */
+/*  FOOTER */
+/* ------- */
+
+footer {
+    margin-block: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    & p {
+        font-size: 0.875rem;
+        color: var(--clr-text-secondary);
+
+        & a {
+            color: var(--clr-primary);
+            text-decoration: none;
+            transition: text-decoration 0.2s;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+}
+
 /* ---------------- */
 /* STRING CONVERTER */
 /* ---------------- */
