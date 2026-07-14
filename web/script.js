@@ -203,17 +203,6 @@ function updateTable() {
     });
 }
 
-// --------------
-// EVENT LISTENER
-// --------------
-
-searchInput.addEventListener('input', () => {
-    updateURL(searchInput.value)
-    document.startViewTransition(() => {
-        updateTable()
-    })
-});
-
 // ------------
 // URL HANDLING
 // ------------
@@ -249,6 +238,7 @@ function init() {
 
     document.startViewTransition(() => updateTable());
     searchInput.addEventListener('input', () => {
+        updateURL(searchInput.value);
         document.startViewTransition(() => updateTable());
     });
 }

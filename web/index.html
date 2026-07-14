@@ -15,26 +15,26 @@
     <header>
         <h1>ASCII TABLE</h1>
         <label for="search-input" class="visually-hidden">Search for a character or code</label>
-        <input id="search-input" type="text" placeholder="Search for a character or code (e.g. S, 10, 0xA3, 0b1100)..."
-            tabindex="1">
+        <input id="search-input" type="text" placeholder="Search for a character or code (e.g. S, 10, 0xA3, 0b1100)...">
         <hr />
     </header>
 
     <main>
-        <table id="ascii-table">
-            <thead>
-                <tr>
-                    <th>Character</th>
-                    <th>Decimal</th>
-                    <th>Hexadecimal</th>
-                    <th>Octal</th>
-                    <th>Binary</th>
-                </tr>
-            </thead>
-
-            <tbody>
-            </tbody>
-        </table>
+        <div class="table-wrapper">
+            <table id="ascii-table">
+                <thead>
+                    <tr>
+                        <th>Character</th>
+                        <th>Decimal</th>
+                        <th>Hexadecimal</th>
+                        <th>Octal</th>
+                        <th>Binary</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
         <p id="no-results-message" class="hidden"></p>
     </main>
 </body>
