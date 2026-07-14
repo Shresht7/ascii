@@ -22,6 +22,7 @@ const noResultsMessage = /** @type {HTMLParagraphElement} */ (document.getElemen
  * @property {string} oct - The octal code as a string.
  * @property {string} bin - The binary code as a string.
  * @property {number} score - The calculated search score for the row.
+ * @property {number[]} cellMatch - Per-cell match type (0=none, 1=partial, 2=exact).
  * @property {HTMLTableRowElement} element - A direct reference to the <tr> DOM element.
  */
 
@@ -37,6 +38,7 @@ const tableData = [...tableBody.rows].map(row => ({
     oct: row.cells[3].textContent.toLowerCase(),
     bin: row.cells[4].textContent.toLowerCase(),
     score: 0,
+    cellMatch: [0, 0, 0, 0, 0],
     element: row
 }));
 
@@ -71,33 +73,34 @@ const SCORE = {
  * Calculates a score for a row based on the weighted algorithm.
  * @param {RowData} rowData - The data object for the row to score.
  * @param {string} searchTerm - The user's search term.
- * @returns {number} The calculated score.
+ * @returns {{ score: number, cellMatch: number[] }} The calculated score and per-cell match types.
  */
 function calculateWeightedScore(rowData, searchTerm) {
     let score = 0;
-    if (!searchTerm) return 0;
+    /** @type {number[]} */
+    const cellMatch = [0, 0, 0, 0, 0];
 
     // Character column
-    if (rowData.char === searchTerm) score += SCORE.CHAR_EXACT;
-    else if (rowData.char.includes(searchTerm)) score += SCORE.CHAR_PARTIAL;
+    if (rowData.char === searchTerm) { score += SCORE.CHAR_EXACT; cellMatch[0] = 2; }
+    else if (rowData.char.includes(searchTerm)) { score += SCORE.CHAR_PARTIAL; cellMatch[0] = 1; }
 
     // Decimal column
-    if (rowData.dec === searchTerm) score += SCORE.DEC_EXACT;
-    else if (rowData.dec.includes(searchTerm)) score += SCORE.DEC_PARTIAL;
+    if (rowData.dec === searchTerm) { score += SCORE.DEC_EXACT; cellMatch[1] = 2; }
+    else if (rowData.dec.includes(searchTerm)) { score += SCORE.DEC_PARTIAL; cellMatch[1] = 1; }
 
     // Hex column
-    if (rowData.hex === searchTerm) score += SCORE.HEX_EXACT;
-    else if (rowData.hex.includes(searchTerm)) score += SCORE.HEX_PARTIAL;
-
-    // Binary column
-    if (rowData.bin === searchTerm) score += SCORE.BIN_EXACT;
-    else if (rowData.bin.includes(searchTerm)) score += SCORE.BIN_PARTIAL;
+    if (rowData.hex === searchTerm) { score += SCORE.HEX_EXACT; cellMatch[2] = 2; }
+    else if (rowData.hex.includes(searchTerm)) { score += SCORE.HEX_PARTIAL; cellMatch[2] = 1; }
 
     // Octal column
-    if (rowData.oct === searchTerm) score += SCORE.OCT_EXACT;
-    else if (rowData.oct.includes(searchTerm)) score += SCORE.OCT_PARTIAL;
+    if (rowData.oct === searchTerm) { score += SCORE.OCT_EXACT; cellMatch[3] = 2; }
+    else if (rowData.oct.includes(searchTerm)) { score += SCORE.OCT_PARTIAL; cellMatch[3] = 1; }
 
-    return score;
+    // Binary column
+    if (rowData.bin === searchTerm) { score += SCORE.BIN_EXACT; cellMatch[4] = 2; }
+    else if (rowData.bin.includes(searchTerm)) { score += SCORE.BIN_PARTIAL; cellMatch[4] = 1; }
+
+    return { score, cellMatch };
 }
 
 // ---------------
@@ -147,6 +150,9 @@ function updateTable() {
         originalRows.forEach(row => {
             tableBody.appendChild(row);
             row.classList.remove('hidden', 'highlight');
+            for (let i = 0; i < 5; i++) {
+                row.cells[i].classList.remove('highlight', 'exact-match');
+            }
         });
         return;
     }
@@ -154,27 +160,33 @@ function updateTable() {
     // Calculate a score for each row based on the search mode and term.
     tableData.forEach(rowData => {
         let score = 0;
+        /** @type {number[]} */
+        let cellMatch = [0, 0, 0, 0, 0];
         const MAX_SCORE = 10000; // A high score for prefix searches to override weighted results.
 
         switch (searchMode) {
             case 'hex':
-                if (rowData.hex === searchTerm) score = MAX_SCORE;
-                else if (rowData.hex.includes(searchTerm)) score = MAX_SCORE / 2;
+                if (rowData.hex === searchTerm) { score = MAX_SCORE; cellMatch[2] = 2; }
+                else if (rowData.hex.includes(searchTerm)) { score = MAX_SCORE / 2; cellMatch[2] = 1; }
                 break;
             case 'oct':
-                if (rowData.oct === searchTerm) score = MAX_SCORE;
-                else if (rowData.oct.includes(searchTerm)) score = MAX_SCORE / 2;
+                if (rowData.oct === searchTerm) { score = MAX_SCORE; cellMatch[3] = 2; }
+                else if (rowData.oct.includes(searchTerm)) { score = MAX_SCORE / 2; cellMatch[3] = 1; }
                 break;
             case 'bin':
-                if (rowData.bin === searchTerm) score = MAX_SCORE;
-                else if (rowData.bin.includes(searchTerm)) score = MAX_SCORE / 2;
+                if (rowData.bin === searchTerm) { score = MAX_SCORE; cellMatch[4] = 2; }
+                else if (rowData.bin.includes(searchTerm)) { score = MAX_SCORE / 2; cellMatch[4] = 1; }
                 break;
             case 'weighted':
-            default:
-                score = calculateWeightedScore(rowData, searchTerm);
+            default: {
+                const result = calculateWeightedScore(rowData, searchTerm);
+                score = result.score;
+                cellMatch = result.cellMatch;
                 break;
+            }
         }
         rowData.score = score;
+        rowData.cellMatch = cellMatch;
     });
 
     // Filter out zero-score rows and sort the rest by score in descending order.
@@ -192,18 +204,29 @@ function updateTable() {
         noResultsMessage.classList.add('hidden');
     }
 
-    // Append the sorted rows back into the table and apply the highlight style.
+    // Append the sorted rows back into the table and apply cell-level match styling.
     // This re-orders the DOM elements based on the search score.
     sortedData.forEach(rowData => {
         rowData.element.classList.remove('hidden');
-        rowData.element.classList.add('highlight');
+        for (let i = 0; i < 5; i++) {
+            const cell = rowData.element.cells[i];
+            cell.classList.remove('highlight', 'exact-match');
+            if (rowData.cellMatch[i] === 2) {
+                cell.classList.add('exact-match');
+            } else if (rowData.cellMatch[i] === 1) {
+                cell.classList.add('highlight');
+            }
+        }
         tableBody.appendChild(rowData.element);
     });
 
-    // Ensure rows that are not in the result set are not highlighted.
+    // Ensure rows that are not in the result set have no cell-level styling.
     const unhighlightedData = tableData.filter(rowData => rowData.score === 0);
     unhighlightedData.forEach(rowData => {
         rowData.element.classList.remove('highlight');
+        for (let i = 0; i < 5; i++) {
+            rowData.element.cells[i].classList.remove('highlight', 'exact-match');
+        }
     });
 }
 
