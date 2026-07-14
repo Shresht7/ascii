@@ -1,5 +1,4 @@
 //@ts-check
-import { ASCII_DATA } from './data.js';
 
 // ------------
 // DOM ELEMENTS
@@ -27,36 +26,19 @@ const noResultsMessage = /** @type {HTMLParagraphElement} */ (document.getElemen
  */
 
 /**
- * An array of the field names used in the RowData structure.
- * This is useful for iterating over the fields when performing searches or updates.
- * @type {('char' | 'dec' | 'hex' | 'oct' | 'bin')[]}
- */
-const CELL_FIELDS = ['char', 'dec', 'hex', 'oct', 'bin'];
-
-/**
- * An array of RowData objects, built from the ASCII_DATA source.
+ * An array of RowData objects, built from the pre-rendered table rows.
  * This provides a fast, structured way to search and links data to the generated DOM elements.
  * @type {RowData[]}
  */
-const tableData = ASCII_DATA.map(item => {
-    const row = tableBody.insertRow();
-
-    CELL_FIELDS.forEach(field => {
-        const cell = row.insertCell();
-        cell.textContent = item[field];
-        cell.dataset.value = item[field];
-    });
-
-    return {
-        char: item.char.toLowerCase(),
-        dec: item.dec.toLowerCase(),
-        hex: item.hex.toLowerCase(),
-        oct: item.oct.toLowerCase(),
-        bin: item.bin.toLowerCase(),
-        score: 0,
-        element: row
-    };
-});
+const tableData = [...tableBody.rows].map(row => ({
+    char: row.cells[0].textContent.toLowerCase(),
+    dec: row.cells[1].textContent.toLowerCase(),
+    hex: row.cells[2].textContent.toLowerCase(),
+    oct: row.cells[3].textContent.toLowerCase(),
+    bin: row.cells[4].textContent.toLowerCase(),
+    score: 0,
+    element: row
+}));
 
 const originalRows = [...tableBody.rows];
 
