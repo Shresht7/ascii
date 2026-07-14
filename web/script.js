@@ -27,19 +27,25 @@ const noResultsMessage = /** @type {HTMLParagraphElement} */ (document.getElemen
  */
 
 /**
+ * An array of the field names used in the RowData structure.
+ * This is useful for iterating over the fields when performing searches or updates.
+ * @type {('char' | 'dec' | 'hex' | 'oct' | 'bin')[]}
+ */
+const CELL_FIELDS = ['char', 'dec', 'hex', 'oct', 'bin'];
+
+/**
  * An array of RowData objects, built from the ASCII_DATA source.
  * This provides a fast, structured way to search and links data to the generated DOM elements.
  * @type {RowData[]}
  */
 const tableData = ASCII_DATA.map(item => {
     const row = tableBody.insertRow();
-    row.innerHTML = `
-        <td>${item.char}</td>
-        <td>${item.dec}</td>
-        <td>${item.hex}</td>
-        <td>${item.oct}</td>
-        <td>${item.bin}</td>
-    `;
+
+    CELL_FIELDS.forEach(field => {
+        const cell = row.insertCell();
+        cell.textContent = item[field];
+        cell.dataset.value = item[field];
+    });
 
     return {
         char: item.char.toLowerCase(),
@@ -224,6 +230,55 @@ function getSearchQueryFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('q');
 }
+
+// -----------------
+// COPY TO CLIPBOARD
+// -----------------
+
+/** The duration for which the "Copied!" feedback message is displayed after a successful copy action. */
+const COPY_FEEDBACK_MS = 1000;
+
+/** @type {Map<HTMLTableCellElement, number>} */
+const activeCopyTimeouts = new Map();
+
+/**
+ * Displays a temporary "Copied!" feedback message in the specified table cell.
+ * @param {HTMLTableCellElement} cell The table cell to show feedback on
+ */
+function showCopyFeedback(cell) {
+    const existingTimeout = activeCopyTimeouts.get(cell);
+    if (existingTimeout) clearTimeout(existingTimeout);
+
+    cell.classList.add('copied');
+    cell.textContent = 'Copied!';
+
+    const timeoutId = setTimeout(() => {
+        cell.classList.remove('copied');
+        cell.textContent = cell.dataset.value || '';
+        activeCopyTimeouts.delete(cell);
+    }, COPY_FEEDBACK_MS);
+
+    activeCopyTimeouts.set(cell, timeoutId);
+}
+
+/**
+ * Copies the value of a table cell to the clipboard and provides visual feedback
+ * @param {HTMLTableCellElement} cell The table cell to copy from
+ */
+function copyCellValue(cell) {
+    const value = cell.dataset.value;
+    if (value === undefined) return;
+
+    navigator.clipboard.writeText(value)
+        .then(() => showCopyFeedback(cell))
+        .catch(err => console.error('Failed to copy to clipboard: ', err));
+}
+
+// Register a click event listener on the table body to handle cell clicks for copying values.
+tableBody.addEventListener('click', event => {
+    const cell = /** @type {HTMLElement} */ (event.target).closest('td');
+    if (cell) copyCellValue(cell);
+});
 
 // --------------
 // INITIALIZATION

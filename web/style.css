@@ -28,6 +28,7 @@
 
     /* Primary Color Palette */
     --clr-primary-text: oklch(98% 0.01 0);
+    --clr-success: oklch(58.844% 0.13093 121.439);
 
     --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     --font-family-monospace: 'Courier New', Courier, Consolas, monospace;
@@ -146,6 +147,17 @@ main {
 
 #ascii-table th {
     font-weight: bold;
+}
+
+#ascii-table td {
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+
+    &.copied {
+        background-color: var(--clr-success);
+        color: var(--clr-primary-text);
+        font-weight: bold;
+    }
 }
 
 #ascii-table thead {
