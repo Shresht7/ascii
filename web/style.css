@@ -71,6 +71,21 @@ header {
     gap: 2rem;
 }
 
+#search-hint {
+    font-size: 0.8125rem;
+    color: var(--clr-text-secondary);
+    align-self: flex-end;
+    margin: -1.25rem 0 0;
+
+    & kbd {
+        font-family: var(--font-family-monospace);
+        padding: 0.1em 0.4em;
+        border: 1px solid var(--clr-border);
+        border-radius: 4px;
+        background-color: var(--clr-surface-2);
+    }
+}
+
 hr {
     width: 100%;
     border: none;

@@ -262,6 +262,32 @@ tableBody.addEventListener('click', event => {
     if (cell) copyCellValue(cell);
 });
 
+// ------------------
+// KEYBOARD SHORTCUTS
+// ------------------
+
+/**
+ * Registers keyboard shortcuts for the search input.
+ * - `/` focuses the search input
+ * - `Escape` blurs the search input
+ */
+document.addEventListener('keydown', event => {
+    if (event.key === '/' && event.target !== searchInput) {
+        const tag = /** @type {HTMLElement} */ (event.target).tagName;
+        if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
+            event.preventDefault();
+            searchInput.focus();
+        }
+    }
+
+    if (event.key === 'Escape' && document.activeElement === searchInput) {
+        searchInput.value = '';
+        searchInput.blur();
+        updateURL('');
+        document.startViewTransition(() => updateTable());
+    }
+});
+
 // --------------
 // INITIALIZATION
 // --------------
