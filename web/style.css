@@ -135,7 +135,6 @@ main {
 }
 
 #ascii-table thead {
-    background-color: var(--clr-surface-1);
     position: sticky;
     top: 0px;
     background-color: var(--clr-surface-2);
