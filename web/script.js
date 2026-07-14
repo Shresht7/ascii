@@ -100,6 +100,22 @@ function calculateWeightedScore(rowData, searchTerm) {
     return score;
 }
 
+// ---------------
+// VIEW TRANSITION
+// ---------------
+
+/**
+ * Calls document.startViewTransition if available, otherwise invokes the callback directly
+ * @param {() => void} callback The function to execute within the view transition
+ */
+function withViewTransition(callback) {
+    if (document.startViewTransition) {
+        document.startViewTransition(callback);
+    } else {
+        callback();
+    }
+}
+
 // -----------
 // DOM UPDATES
 // -----------
@@ -284,7 +300,7 @@ document.addEventListener('keydown', event => {
         searchInput.value = '';
         searchInput.blur();
         updateURL('');
-        document.startViewTransition(() => updateTable());
+        withViewTransition(() => updateTable());
     }
 });
 
@@ -299,10 +315,10 @@ function init() {
         searchInput.value = query;
     }
 
-    document.startViewTransition(() => updateTable());
+    withViewTransition(() => updateTable());
     searchInput.addEventListener('input', () => {
         updateURL(searchInput.value);
-        document.startViewTransition(() => updateTable());
+        withViewTransition(() => updateTable());
     });
 }
 
