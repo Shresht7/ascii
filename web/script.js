@@ -10,6 +10,7 @@ const asciiTable = /** @type {HTMLTableElement} */ (document.getElementById('asc
 const tableBody = /** @type {HTMLTableSectionElement} */ (asciiTable.tBodies[0]);
 const noResultsMessage = /** @type {HTMLParagraphElement} */ (document.getElementById('no-results-message'));
 const converterOutput = /** @type {HTMLDivElement} */ (document.getElementById('converter-output'));
+const searchHint = /** @type {HTMLParagraphElement} */ (document.getElementById('search-hint'));
 
 // ----------------
 // DATA PREPARATION
@@ -425,6 +426,19 @@ converterOutput.addEventListener('click', /** @param {MouseEvent} event */ event
         .catch(err => console.error('Failed to copy: ', err));
 });
 
+// -----------
+// SEARCH HINT
+// -----------
+
+/** Updates the search hint text based on whether the search input is focused */
+function updateHint() {
+    if (document.activeElement === searchInput) {
+        searchHint.innerHTML = 'Press <kbd>Esc</kbd> to clear';
+    } else {
+        searchHint.innerHTML = 'Press <kbd>/</kbd> to search';
+    }
+}
+
 // ------------------
 // KEYBOARD SHORTCUTS
 // ------------------
@@ -463,6 +477,10 @@ function init() {
     if (query) {
         searchInput.value = query;
     }
+
+    updateHint();
+    searchInput.addEventListener('focus', updateHint);
+    searchInput.addEventListener('blur', updateHint);
 
     withViewTransition(() => updateTable());
     searchInput.addEventListener('input', () => {
