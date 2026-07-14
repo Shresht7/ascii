@@ -1,5 +1,5 @@
 // @ts-check
-import { controlCharacterNames } from './data.js';
+import { ASCII_DATA, controlCharacterNames } from './data.js';
 
 // ------------
 // DOM ELEMENTS
@@ -29,22 +29,45 @@ const converterOutput = /** @type {HTMLDivElement} */ (document.getElementById('
  */
 
 /**
- * An array of RowData objects, built from the pre-rendered table rows.
- * This provides a fast, structured way to search and links data to the generated DOM elements.
+ * An array of RowData objects providing a fast, structured way to search
+ * and links data to the generated DOM elements.
  * @type {RowData[]}
  */
-const tableData = [...tableBody.rows].map(row => ({
-    char: row.cells[0].textContent.toLowerCase(),
-    dec: row.cells[1].textContent.toLowerCase(),
-    hex: row.cells[2].textContent.toLowerCase(),
-    oct: row.cells[3].textContent.toLowerCase(),
-    bin: row.cells[4].textContent.toLowerCase(),
-    score: 0,
-    cellMatch: [0, 0, 0, 0, 0],
-    element: row
-}));
+let tableData = [];
 
-const originalRows = [...tableBody.rows];
+/** @type {HTMLTableRowElement[]} */
+let originalRows = [];
+
+/**
+ * Builds the table rows from ASCII_DATA and populates the tableData and originalRows arrays.
+ */
+function buildTable() {
+    tableBody.innerHTML = '';
+    for (const entry of ASCII_DATA) {
+        const row = document.createElement('tr');
+        const values = [entry.char, entry.dec, entry.hex, entry.oct, entry.bin];
+        for (const value of values) {
+            const cell = document.createElement('td');
+            cell.textContent = value;
+            cell.dataset.value = value;
+            row.appendChild(cell);
+        }
+        tableBody.appendChild(row);
+    }
+
+    tableData = [...tableBody.rows].map(row => ({
+        char: row.cells[0].textContent.toLowerCase(),
+        dec: row.cells[1].textContent.toLowerCase(),
+        hex: row.cells[2].textContent.toLowerCase(),
+        oct: row.cells[3].textContent.toLowerCase(),
+        bin: row.cells[4].textContent.toLowerCase(),
+        score: 0,
+        cellMatch: [0, 0, 0, 0, 0],
+        element: row
+    }));
+
+    originalRows = [...tableBody.rows];
+}
 
 // -----------------
 // STRING CONVERTER
@@ -434,6 +457,8 @@ document.addEventListener('keydown', event => {
 
 /** The initialization logic */
 function init() {
+    buildTable();
+
     const query = getSearchQueryFromURL();
     if (query) {
         searchInput.value = query;
