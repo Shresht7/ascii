@@ -1,4 +1,5 @@
-//@ts-check
+// @ts-check
+import { controlCharacterNames } from './data.js';
 
 // ------------
 // DOM ELEMENTS
@@ -8,6 +9,7 @@ const searchInput = /** @type {HTMLInputElement} */ (document.getElementById('se
 const asciiTable = /** @type {HTMLTableElement} */ (document.getElementById('ascii-table'));
 const tableBody = /** @type {HTMLTableSectionElement} */ (asciiTable.tBodies[0]);
 const noResultsMessage = /** @type {HTMLParagraphElement} */ (document.getElementById('no-results-message'));
+const converterOutput = /** @type {HTMLDivElement} */ (document.getElementById('converter-output'));
 
 // ----------------
 // DATA PREPARATION
@@ -44,6 +46,63 @@ const tableData = [...tableBody.rows].map(row => ({
 
 const originalRows = [...tableBody.rows];
 
+// -----------------
+// STRING CONVERTER
+// -----------------
+
+/**
+ * Returns the display representation of a single character.
+ * Control characters (0-31, 127) show their abbreviation (NUL, SOH, etc.).
+ * @param {string} c A single character
+ * @returns {string} The display string for the character
+ */
+function charDisplay(c) {
+    const code = c.charCodeAt(0);
+    if (code <= 31) return controlCharacterNames[code];
+    if (code === 127) return 'DEL';
+    return c;
+}
+
+/**
+ * Builds the converter output rows (glyph, DEC, HEX, OCT, BIN) for a given string.
+ * Each row is a div with a label span and value spans per character.
+ * @param {string} text The input string to convert
+ */
+function buildConverter(text) {
+    converterOutput.innerHTML = '';
+    const chars = [...text];
+    if (chars.length === 0) return;
+
+    const labels = ['', 'DEC', 'HEX', 'OCT', 'BIN'];
+
+    for (let rowIdx = 0; rowIdx < 5; rowIdx++) {
+        const row = document.createElement('div');
+        row.className = 'convert-row';
+
+        const label = document.createElement('span');
+        label.className = 'convert-label';
+        label.textContent = labels[rowIdx];
+        row.appendChild(label);
+
+        for (const c of chars) {
+            const code = c.charCodeAt(0);
+            let value;
+            if (rowIdx === 0) value = charDisplay(c);
+            else if (rowIdx === 1) value = code.toString();
+            else if (rowIdx === 2) value = code.toString(16);
+            else if (rowIdx === 3) value = code.toString(8);
+            else value = code.toString(2);
+
+            const span = document.createElement('span');
+            span.className = 'convert-value';
+            span.textContent = value;
+            span.dataset.value = value;
+            row.appendChild(span);
+        }
+
+        converterOutput.appendChild(row);
+    }
+}
 
 // --------------
 // SEARCH SCORING
@@ -128,9 +187,10 @@ function withViewTransition(callback) {
  * It is called on every 'input' event from the search box.
  */
 function updateTable() {
-    const rawSearchTerm = searchInput.value.toLowerCase();
-    let searchTerm = rawSearchTerm;
-    let searchMode = 'weighted'; // Can be 'weighted', 'hex', 'oct', or 'bin'
+    const rawSearchTerm = searchInput.value;
+    const lowerSearchTerm = rawSearchTerm.toLowerCase();
+    let searchTerm = lowerSearchTerm;
+    let searchMode = 'weighted'; // Can be 'weighted', 'hex', 'oct', 'bin', or 'converter'
 
     // Check for special prefixes (0x, 0o, 0b) to trigger a targeted search.
     if (searchTerm.startsWith('0x') && searchTerm.length > 2) {
@@ -146,7 +206,9 @@ function updateTable() {
 
     // If the search box is cleared, restore the table to its original state.
     if (!rawSearchTerm) {
+        converterOutput.classList.add('hidden');
         noResultsMessage.classList.add('hidden');
+        asciiTable.classList.remove('hidden');
         originalRows.forEach(row => {
             tableBody.appendChild(row);
             row.classList.remove('hidden', 'highlight');
@@ -156,6 +218,23 @@ function updateTable() {
         });
         return;
     }
+
+    // Converter mode: multi-character input without a prefix or numeric search
+    if (searchMode === 'weighted' && rawSearchTerm.length > 1
+        && !lowerSearchTerm.startsWith('0x')
+        && !lowerSearchTerm.startsWith('0o')
+        && !lowerSearchTerm.startsWith('0b')
+        && !/^\d+$/.test(rawSearchTerm)) {
+        asciiTable.classList.add('hidden');
+        noResultsMessage.classList.add('hidden');
+        converterOutput.classList.remove('hidden');
+        buildConverter(rawSearchTerm);
+        return;
+    }
+
+    // Normal search mode (weighted or prefix)
+    converterOutput.classList.add('hidden');
+    asciiTable.classList.remove('hidden');
 
     // Calculate a score for each row based on the search mode and term.
     tableData.forEach(rowData => {
@@ -259,7 +338,7 @@ function getSearchQueryFromURL() {
 /** The duration for which the "Copied!" feedback message is displayed after a successful copy action. */
 const COPY_FEEDBACK_MS = 1000;
 
-/** @type {Map<HTMLTableCellElement, NodeJS.Timeout>} */
+/** @type {Map<HTMLTableCellElement, number>} */
 const activeCopyTimeouts = new Map();
 
 /**
@@ -299,6 +378,28 @@ function copyCellValue(cell) {
 tableBody.addEventListener('click', event => {
     const cell = /** @type {HTMLElement} */ (event.target).closest('td');
     if (cell) copyCellValue(cell);
+});
+
+// Register a click event listener on the converter output for copying a whole line.
+converterOutput.addEventListener('click', /** @param {MouseEvent} event */ event => {
+    const row = /** @type {HTMLElement} */ (event.target).closest('.convert-row');
+    if (!row) return;
+
+    const values = [...row.querySelectorAll('.convert-value')]
+        .map(span => /** @type {HTMLElement} */(span).dataset.value)
+        .filter(v => v !== undefined);
+
+    if (values.length === 0) return;
+
+    const isGlyphRow = row.querySelector('.convert-label')?.textContent === '';
+    const text = isGlyphRow ? values.join('') : values.join(' ');
+
+    navigator.clipboard.writeText(text)
+        .then(() => {
+            row.classList.add('copied');
+            setTimeout(() => row.classList.remove('copied'), 800);
+        })
+        .catch(err => console.error('Failed to copy: ', err));
 });
 
 // ------------------
