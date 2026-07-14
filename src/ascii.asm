@@ -4,13 +4,13 @@
 ; DEFINITIONS
 ; -----------
 
-%define SYS_WRITE       1
-%define SYS_EXIT        60
+SYS_WRITE       equ 1
+SYS_EXIT        equ 60
 
-%define FD_STDOUT       1
+FD_STDOUT       equ 1
 
-%define EXIT_SUCCESS    0
-%define EXIT_FAILURE    1
+EXIT_SUCCESS    equ 0
+EXIT_FAILURE    equ 1
 
 ; ------
 ; MACROS
