@@ -104,6 +104,22 @@ section .bss
     call convert
 %endmacro
 
+; Print a representation only if the corresponding flag is set
+; %1 = flag constant (FLAG_DEC, FLAG_HEX, etc.)
+; %2 = repr prefix (ten, hex, oct, bin)
+; %3 = base (10, 16, 8, 2)
+%macro maybe_print 3
+    test byte [flags], %1
+    jz %%skip
+    cmp r15, 0
+    je %%no_sep
+    print separator
+%%no_sep:
+    repr %2, %3
+    inc r15
+%%skip:
+%endmacro
+
 ; ----
 ; CODE
 ; ----
@@ -296,29 +312,27 @@ process_char_arg:
     ja err_out_of_ascii_bounds      ; Error: Out of ASCII Bounds (0..127)
 
     movzx r12, al           ; Save original value in r12
+    xor r15, r15            ; Reset item counter for maybe_print
 
-    ; Print decimal representation
-    repr ten, 10            ; No prefix after repr => decimal representation
+    cmp byte [flags], 0     ; Check if any output flags are set
+    jne .print_selected
 
-    ; Print space separator
+    ; No flags: print all four representations (default)
+    repr ten, 10
     print separator
-
-    ; Print hexadecimal representation
     repr hex, 16
-
-    ; Print space separator
     print separator
-
-    ; Print octal representation
     repr oct, 8
-
-    ; Print space separator
     print separator
-
-    ; Print binary representation
     repr bin, 2
+    print newline
+    ret
 
-    ; Write newline
+.print_selected:
+    maybe_print FLAG_DEC, ten, 10
+    maybe_print FLAG_HEX, hex, 16
+    maybe_print FLAG_OCT, oct, 8
+    maybe_print FLAG_BIN, bin, 2
     print newline
     ret
 
