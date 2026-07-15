@@ -414,6 +414,7 @@ process_string:
 %macro def_ps_line 3
 .ps_line_%1:
     push r14
+    push r15
     xor r15, r15
 %%loop:
     mov al, [r14]
@@ -431,6 +432,7 @@ process_string:
     inc r14                 ; advance to next character
     jmp %%loop
 %%done:
+    pop r15
     pop r14
     print newline
     ret
