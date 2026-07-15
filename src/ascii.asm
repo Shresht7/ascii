@@ -28,23 +28,23 @@ section .data
     usage_msg db "Usage: ascii <value> [value ...] | [flag]", 0xA, 0xA
               db "Display ASCII information for one or more values.", 0xA, 0xA
               db "Values can be:", 0xA
-              db "  Characters:        A   Hello   (each character is processed individually)", 0xA
-              db "  Numeric (--lookup): 65   0x41   0o101   0b1000001", 0xA, 0xA
+              db "  Characters:             A   Hello   (each character is processed individually)", 0xA
+              db "  Numeric (--lookup):     65   0x41   0o101   0b1000001", 0xA, 0xA
               db "Flags:", 0xA
-              db "  -f, --full        Display the full ASCII table.", 0xA
-              db "  -h, --help        Display this help message.", 0xA
-              db "  -d, --dec         Show decimal representation", 0xA
-              db "  -x, --hex         Show hexadecimal representation", 0xA
-              db "  -o, --oct         Show octal representation", 0xA
-              db "  -b, --bin         Show binary representation", 0xA
-              db "  -c, --char        Show character glyph", 0xA
-              db "  -l, --lookup      Treat values as numeric codes", 0xA, 0xA
+              db "  -f, --full              Display the full ASCII table.", 0xA
+              db "  -h, --help              Display this help message.", 0xA
+              db "  -d, --dec               Show decimal representation", 0xA
+              db "  -x, --hex               Show hexadecimal representation", 0xA
+              db "  -o, --oct               Show octal representation", 0xA
+              db "  -b, --bin               Show binary representation", 0xA
+              db "  -c, --char              Show character glyph", 0xA
+              db "  -l, --lookup            Treat values as numeric codes", 0xA, 0xA
               db "Examples:", 0xA
-              db "  ascii A               Show all representations of 'A'", 0xA
-              db "  ascii Hello           Process each character in 'Hello'", 0xA
-              db "  ascii A B --hex       Show hex only for 'A' and 'B'", 0xA
-              db "  ascii --lookup 65     Look up decimal code 65", 0xA
-              db "  ascii -l 0x41 --char  Look up hex 0x41, show glyph only", 0xA
+              db "  ascii A                 Show all representations of 'A'", 0xA
+              db "  ascii Hello             Process each character in 'Hello'", 0xA
+              db "  ascii A B --hex         Show hex only for 'A' and 'B'", 0xA
+              db "  ascii --lookup 65       Look up decimal code 65", 0xA
+              db "  ascii -l 0x41 --char    Look up hex 0x41, show glyph only", 0xA
     usage_msg_len equ $ - usage_msg
 
     ; FLAGS

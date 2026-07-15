@@ -50,26 +50,26 @@ Usage: ascii <value> [value ...] | [flag]
 Display ASCII information for one or more values.
 
 Values can be:
-  Characters:        A   Hello   (each character is processed individually)
-  Numeric (--lookup): 65   0x41   0o101   0b1000001
+  Characters:               A   Hello   (each character is processed individually)
+  Numeric (--lookup):       65   0x41   0o101   0b1000001
 
 Flags:
-  -f, --full        Display the full ASCII table.
-  -h, --help        Display this help message.
-  -d, --dec         Show decimal representation
-  -x, --hex         Show hexadecimal representation
-  -o, --oct         Show octal representation
-  -b, --bin         Show binary representation
-  -c, --char        Show character glyph
-  -l, --lookup      Treat values as numeric codes
+  -f, --full                Display the full ASCII table.
+  -h, --help                Display this help message.
+  -d, --dec                 Show decimal representation
+  -x, --hex                 Show hexadecimal representation
+  -o, --oct                 Show octal representation
+  -b, --bin                 Show binary representation
+  -c, --char                Show character glyph
+  -l, --lookup              Treat values as numeric codes
 
 Examples:
-  ascii A               Show all representations of 'A'
-  ascii Hello           Process each character in 'Hello'
-  ascii A B --hex       Show hex only for 'A' and 'B'
-  ascii Hello --hex     Show hex for each byte in 'Hello'
-  ascii --lookup 65     Look up decimal code 65
-  ascii -l 0x41 --char  Look up hex 0x41, show glyph only
+  ascii A                   Show all representations of 'A'
+  ascii Hello               Process each character in 'Hello'
+  ascii A B --hex           Show hex only for 'A' and 'B'
+  ascii Hello --hex         Show hex for each byte in 'Hello'
+  ascii --lookup 65         Look up decimal code 65
+  ascii -l 0x41 --char      Look up hex 0x41, show glyph only
 ```
 
 ---
