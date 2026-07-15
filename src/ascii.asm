@@ -84,12 +84,9 @@ section .bss
     buf resb 32                 ; Reserve 32 bytes for digits and prefixes
     flags resb 1                ; Reserve 1 byte for flags
 
-; ----
-; CODE
-; ----
-
-section .text
-    global _start
+; ------
+; MACROS
+; ------
 
 ; Prints the correct representation
 ; %1 = repr prefix (or empty), %2 = base
@@ -100,8 +97,14 @@ section .text
     mov rdi, r12    ; The number to convert
     mov rsi, %2     ; The conersion base
     call convert
-
 %endmacro
+
+; ----
+; CODE
+; ----
+
+section .text
+    global _start
 
 ; The main entrypoint of the application
 _start:
