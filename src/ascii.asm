@@ -12,10 +12,10 @@
 ; INITIALIZED DATA
 ; ----------------
 
-FLAG_DEC equ 1 ; 0001 - This flag is used to indicate that the decimal representation should be printed.
-FLAG_BIN equ 2 ; 0010 - This flag is used to indicate that the binary representation should be printed.
-FLAG_HEX equ 4 ; 0100 - This flag is used to indicate that the hexadecimal representation should be printed.
-FLAG_OCT equ 8 ; 1000 - This flag is used to indicate that the octal representation should be printed.
+FLAG_DEC equ 1 ; 0001 - Indicates that the decimal representation should be printed
+FLAG_BIN equ 2 ; 0010 - Indicates that the binary representation should be printed
+FLAG_HEX equ 4 ; 0100 - Indicates that the hexadecimal representation should be printed
+FLAG_OCT equ 8 ; 1000 - Indicates that the octal representation should be printed
 
 section .data
 
@@ -37,14 +37,14 @@ section .data
     flag_full db "--full", 0
     flag_f db "-f", 0
 
-    arg_dec db "--dec", 0
-    arg_d db "-d", 0
-    arg_bin db "--bin", 0
-    arg_b db "-b", 0
+    flag_dec db "--dec", 0
+    flag_d db "-d", 0
+    flag_bin db "--bin", 0
+    flag_b db "-b", 0
     flag_hex db "--hex", 0
-    arg_x db "-x", 0
-    arg_oct db "--oct", 0
-    arg_o db "-o", 0
+    flag_x db "-x", 0
+    flag_oct db "--oct", 0
+    flag_o db "-o", 0
 
     ; PREFIXES
     ; --------
@@ -64,6 +64,9 @@ section .data
     ; ERRORS
     ; ------
 
+    err_unknown_flag_msg db "Error: Unknown flag provided", 0xA
+    err_unknown_flag_msg_len equ $ - err_unknown_flag_msg
+
     err_out_of_ascii_bounds_msg db "Error: Out of bounds for ASCII. Should be a valid ASCII character between 0 and 127", 0xA
     err_out_of_ascii_bounds_msg_len equ $ - err_out_of_ascii_bounds_msg
 
@@ -81,8 +84,9 @@ section .data
 ; ------------------
 
 section .bss
-    buf resb 32                 ; Reserve 32 bytes for digits and prefixes
-    flags resb 1                ; Reserve 1 byte for flags
+    buf resb 32                         ; Reserve 32 bytes for digits and prefixes
+    arg_values resq 128                ; Reserve space for up to 128 argument values (8 bytes each)
+    flags resb 1                        ; Reserve 1 byte for flags
 
 ; ------
 ; MACROS
@@ -108,54 +112,68 @@ section .text
 
 ; The main entrypoint of the application
 _start:
+
+    ; ENSURE AT LEAST ONE ARGUMENT IS PROVIDED
+    ; ----------------------------------------
+
     ; Retrieve argument count (argc)
     ; When the program starts, rsp points to argc
-    mov r13, [rsp]              ; Move argc value into r13
-    mov byte [flags], 0         ; Initialize flags to 0
-    cmp r13, 2                  ; Compare argc with 2 (program_name + first_argument)
-    jl usage                    ; less than 2 => Insufficient Arguments. Show Usage message 
+    mov r13, [rsp]                  ; Move argc value ([rsp]) into r13
+    mov byte [flags], 0             ; Initialize flags to 0000
+    cmp r13, 2                      ; Compare argc with 2 (program_name + first_argument)
+    jl err_usage                    ; less than 2 => Insufficient Arguments. Show Usage message and exit
 
-    lea r14, [rsp + 16]         ; Load address of argv[1] into r14 (argv starts at rsp + 8, argv[1] is at rsp + 16)
-    mov r15, 1                   ; Initialize argument index to 1
+    ; PROCESS COMMAND-LINE ARGUMENTS
+    ; ------------------------------
+
+    lea r14, [rsp + 16]             ; Load address of argv[1] into r14 (argv starts at rsp + 8, argv[1] is at rsp + 16)
+    mov r15, 1                      ; Initialize argument index to 1
 
     .process_args_loop:
+
+        ; Exit loop if all arguments have been processed
+
         cmp r15, r13                ; Compare argument index with argc
-        je done                     ; If equal, all arguments processed
+        je .process_args_done       ; If they are equal, all arguments have been processed, exit the loop
+
+        ; Check if the current argument is a flag or a value
 
         mov rdi, [r14]              ; Load the current argument pointer into rdi
         mov al, [rdi]               ; Load the first character of the argument into al
         cmp al, '-'                 ; Check if the argument starts with '-'
-        jne .process_value          ; If not, it's a value, process it
+        jne .store_value            ; If its not a flag, store the value and move to the next argument
 
-        ; --help or -h flag check
+        ; Check for -h flag
         mov rdi, [r14]              ; Load the current argument pointer into rdi
-        mov rsi, flag_help           ; Load the address of "--help" into rsi
-        call strcmp                 ; Compare the argument with "--help"
-        cmp rax, 0                  ; Check if they are equal
-        je usage                    ; If equal, show usage message
-
-        mov rdi, [r14]              ; Load the current argument pointer into rdi
-        mov rsi, flag_h              ; Load the address of "-h" into rsi
+        mov rsi, flag_h             ; Load the address of "-h" into rsi
         call strcmp                 ; Compare the argument with "-h"
         cmp rax, 0                  ; Check if they are equal
         je usage                    ; If equal, show usage message
 
-        ; --full or -f flag check
+        ; Check for --help flag
         mov rdi, [r14]              ; Load the current argument pointer into rdi
-        mov rsi, flag_full           ; Load the address of "--full" into rsi
-        call strcmp                 ; Compare the argument with "--full"
+        mov rsi, flag_help          ; Load the address of "--help" into rsi
+        call strcmp                 ; Compare the argument with "--help"
+        cmp rax, 0                  ; Check if they are equal
+        je usage                    ; If equal, show usage message
+
+        ; Check for -f flag
+        mov rdi, [r14]              ; Load the current argument pointer into rdi
+        mov rsi, flag_f             ; Load the address of "-f" into rsi
+        call strcmp                 ; Compare the argument with "-f"
         cmp rax, 0                  ; Check if they are equal
         je full_table               ; If equal, display the full ASCII table
 
+        ; Check for --full flag
         mov rdi, [r14]              ; Load the current argument pointer into rdi
-        mov rsi, flag_f              ; Load the address of "-f" into rsi
-        call strcmp                 ; Compare the argument with "-f"
+        mov rsi, flag_full          ; Load the address of "--full" into rsi
+        call strcmp                 ; Compare the argument with "--full"
         cmp rax, 0                  ; Check if they are equal
         je full_table               ; If equal, display the full ASCII table
 
         ; --dec or -d flag check
         mov rdi, [r14]              ; Load the current argument pointer into rdi
-        mov rsi, arg_dec            ; Load the address of "--dec" into rsi
+        mov rsi, flag_dec            ; Load the address of "--dec" into rsi
         call strcmp                 ; Compare the argument with "--dec"
         cmp rax, 0                  ; Check if they are equal
         jne .check_dec_short        ; If not equal, check for short version
@@ -163,81 +181,87 @@ _start:
         jmp .next_arg               ; Move to the next argument
 
         .check_dec_short:
-            mov rdi, [r14]              ; Load the current argument pointer into rdi
-            mov rsi, arg_d      ; Load the address of "-d" into rsi
-            call strcmp                 ; Compare the argument with "-d"
-            cmp rax, 0                  ; Check if they are equal
-            jne .check_bin              ; If not equal, check for binary flag
-            or byte [flags], FLAG_DEC   ; Set the decimal flag
-            jmp .next_arg               ; Move to the next argument
+        mov rdi, [r14]              ; Load the current argument pointer into rdi
+        mov rsi, flag_d              ; Load the address of "-d" into rsi
+        call strcmp                 ; Compare the argument with "-d"
+        cmp rax, 0                  ; Check if they are equal
+        jne .check_bin              ; If not equal, check for binary flag
+        or byte [flags], FLAG_DEC   ; Set the decimal flag
+        jmp .next_arg               ; Move to the next argument
 
         .check_bin:
-            mov rdi, [r14]              ; Load the current argument pointer into rdi
-            mov rsi, arg_bin            ; Load the address of "--bin" into rsi
-            call strcmp                 ; Compare the argument with "--bin"
-            cmp rax, 0                  ; Check if they are equal
-            jne .check_bin_short        ; If not equal, check for short version
-            or byte [flags], FLAG_BIN   ; Set the binary flag
-            jmp .next_arg               ; Move to the next argument
+        mov rdi, [r14]              ; Load the current argument pointer into rdi
+        mov rsi, flag_bin            ; Load the address of "--bin" into rsi
+        call strcmp                 ; Compare the argument with "--bin"
+        cmp rax, 0                  ; Check if they are equal
+        jne .check_bin_short        ; If not equal, check for short version
+        or byte [flags], FLAG_BIN   ; Set the binary flag
+        jmp .next_arg               ; Move to the next argument
 
         .check_bin_short:
-            mov rdi, [r14]              ; Load the current argument pointer into rdi
-            mov rsi, arg_b      ; Load the address of "-b" into rsi
-            call strcmp                 ; Compare the argument with "-b"
-            cmp rax, 0                  ; Check if they are equal
-            jne .check_hex              ; If not equal, check for hexadecimal flag
-            or byte [flags], FLAG_BIN   ; Set the binary flag
-            jmp .next_arg               ; Move to the next argument
+        mov rdi, [r14]              ; Load the current argument pointer into rdi
+        mov rsi, flag_b              ; Load the address of "-b" into rsi
+        call strcmp                 ; Compare the argument with "-b"
+        cmp rax, 0                  ; Check if they are equal
+        jne .check_hex              ; If not equal, check for hexadecimal flag
+        or byte [flags], FLAG_BIN   ; Set the binary flag
+        jmp .next_arg               ; Move to the next argument
 
         .check_hex:
-            mov rdi, [r14]              ; Load the current argument pointer into rdi
-            mov rsi, flag_hex            ; Load the address of "--hex" into rsi
-            call strcmp                 ; Compare the argument with "--hex"
-            cmp rax, 0                  ; Check if they are equal
-            jne .check_hex_short        ; If not equal, check for short version
-            or byte [flags], FLAG_HEX   ; Set the hexadecimal flag
-            jmp .next_arg               ; Move to the next argument
+        mov rdi, [r14]              ; Load the current argument pointer into rdi
+        mov rsi, flag_hex           ; Load the address of "--hex" into rsi
+        call strcmp                 ; Compare the argument with "--hex"
+        cmp rax, 0                  ; Check if they are equal
+        jne .check_hex_short        ; If not equal, check for short version
+        or byte [flags], FLAG_HEX   ; Set the hexadecimal flag
+        jmp .next_arg               ; Move to the next argument
 
         .check_hex_short:
-            mov rdi, [r14]              ; Load the current argument pointer into rdi
-            mov rsi, arg_x      ; Load the address of "-x" into rsi
-            call strcmp                 ; Compare the argument with "-x"
-            cmp rax, 0                  ; Check if they are equal
-            jne .check_oct              ; If not equal, check for octal flag
-            or byte [flags], FLAG_HEX   ; Set the hexadecimal flag
-            jmp .next_arg               ; Move to the next argument
+        mov rdi, [r14]              ; Load the current argument pointer into rdi
+        mov rsi, flag_x              ; Load the address of "-x" into rsi
+        call strcmp                 ; Compare the argument with "-x"
+        cmp rax, 0                  ; Check if they are equal
+        jne .check_oct              ; If not equal, check for octal flag
+        or byte [flags], FLAG_HEX   ; Set the hexadecimal flag
+        jmp .next_arg               ; Move to the next argument
 
         .check_oct:
-            mov rdi, [r14]              ; Load the current argument pointer into rdi
-            mov rsi, arg_oct            ; Load the address of "--oct" into rsi
-            call strcmp                 ; Compare the argument with "--oct"
-            cmp rax, 0                  ; Check if they are equal
-            jne .check_oct_short        ; If not equal, check for short version
-            or byte [flags], FLAG_OCT   ; Set the octal flag
-            jmp .next_arg               ; Move to the next argument
+        mov rdi, [r14]              ; Load the current argument pointer into rdi
+        mov rsi, flag_oct            ; Load the address of "--oct" into rsi
+        call strcmp                 ; Compare the argument with "--oct"
+        cmp rax, 0                  ; Check if they are equal
+        jne .check_oct_short        ; If not equal, check for short version
+        or byte [flags], FLAG_OCT   ; Set the octal flag
+        jmp .next_arg               ; Move to the next argument
 
         .check_oct_short:
-            mov rdi, [r14]              ; Load the current argument pointer into rdi
-            mov rsi, arg_o      ; Load the address of "-o" into rsi
-            call strcmp                 ; Compare the argument with "-o"
-            cmp rax, 0                  ; Check if they are equal
-            jne .unknown_flag           ; If not equal, it's an unknown flag
-            or byte [flags], FLAG_OCT   ; Set the octal flag
-            jmp .next_arg               ; Move to the next argument
+        mov rdi, [r14]              ; Load the current argument pointer into rdi
+        mov rsi, flag_o              ; Load the address of "-o" into rsi
+        call strcmp                 ; Compare the argument with "-o"
+        cmp rax, 0                  ; Check if they are equal
+        jne .unknown_flag           ; If not equal, it's an unknown flag
+        or byte [flags], FLAG_OCT   ; Set the octal flag
+        jmp .next_arg               ; Move to the next argument
 
-        jmp usage                   ; Unknown flag
+        ; If none of the known flags matched, it's an unknown flag
+        jmp err_unknown_flag        ; Unknown flag, show usage message
 
-    .process_value:
-        ; Process the character argument
-        call process_char_arg
+        .store_value:
+            ; Store the value in arg_values
+            mov [arg_values + r15*8], rdi   ; Store the pointer to the argument string
+            jmp .next_arg                   ; Move to the next argument
 
-    .unknown_flag:
-        jmp usage                   ; Unknown flag, show usage message
+        .next_arg:
+            add r14, 8                  ; Move to the next argument pointer (argv[i] is 8 bytes apart)
+            inc r15                     ; Increment argument index
+            jmp .process_args_loop      ; Repeat the loop
 
-    .next_arg:
-        add r14, 8                  ; Move to the next argument pointer (argv[i] is 8 bytes apart)
-        inc r15                     ; Increment argument index
-        jmp .process_args_loop      ; Repeat the loop
+        ; All arguments have been processed
+        .process_args_done:
+            jmp process_values
+
+process_values:
+    ; TODO: Implement processing of values based on flags set in [flags]
 
 ; Validate and print the first character from argv[i]
 ; rdi = pointer to the argument string
@@ -279,8 +303,12 @@ process_char_arg:
     print newline
     ret
 
+; ----------
+; FULL-TABLE
+; ----------
+
 full_table:
-    xor r12, r12            ; Counter = 0
+    xor r12, r12                    ; Counter = 0
     .table_loop:
         call print_char
         mov rdi, r12
@@ -294,28 +322,44 @@ full_table:
         print newline
         inc r12
         cmp r12, 128
-        jne .table_loop         ; Loop until 128
+        jne .table_loop             ; Loop until 128
+        jmp .table_done
+    .table_done:
         jmp done
 
-    done:
-    ; Exit with Success Status Code
-    exit EXIT_SUCCESS
+; Program Completed. Exit Successfully!
+done:
+exit EXIT_SUCCESS
 
 ; ERROR BRANCHES
 ; --------------
 
-; Print the usage message and exit
-usage:
+err_unknown_flag:
+    print err_unknown_flag_msg
+    print newline
     print usage_msg
     exit EXIT_FAILURE
 
 err_out_of_ascii_bounds:
     print err_out_of_ascii_bounds_msg
-    exit 1
+    exit EXIT_FAILURE
 
-; --------
-; ROUTINES
-; --------
+; USAGE
+; -----
+
+; Print the usage message and exit with failure status code
+err_usage:
+    print usage_msg
+    exit EXIT_FAILURE
+
+; Print the usage message and exit
+usage:
+    print usage_msg
+    exit EXIT_SUCCESS
+
+; ------------
+; SUB-ROUTINES
+; ------------
 
 ; convert: rdi = number, rsi = base (e.g. 10, 16, 8, 2)
 ; Prints the appropriate representation
