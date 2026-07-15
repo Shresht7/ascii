@@ -104,22 +104,6 @@ section .bss
     call convert
 %endmacro
 
-; Print a representation only if the corresponding flag is set
-; %1 = flag constant (FLAG_DEC, FLAG_HEX, etc.)
-; %2 = repr prefix (ten, hex, oct, bin)
-; %3 = base (10, 16, 8, 2)
-%macro maybe_print 3
-    test byte [flags], %1
-    jz %%skip
-    cmp r15, 0
-    je %%no_sep
-    print separator
-%%no_sep:
-    repr %2, %3
-    inc r15
-%%skip:
-%endmacro
-
 ; ----
 ; CODE
 ; ----
@@ -293,31 +277,28 @@ process_values:
         je done                          ; If index equals value_count, all values have been processed
 
         mov rdi, [r14 + r13 * 8]         ; Load the argument pointer (values[r13]) into rdi
-        call process_char_arg            ; Process the character argument
+        call process_string              ; Process the entire string
 
         inc r13                          ; Increment index
         jmp .value_loop                  ; Repeat the loop
 
-; Validate and print the first character from argv[i]
-; rdi = pointer to the argument string
-process_char_arg:
-    mov al, [rdi]           ; first character (pointer to rdi)
+; Process a null-terminated string, printing representations for each character
+; rdi = pointer to the string
+process_string:
+    push r14
+    mov r14, rdi                    ; r14 = string pointer (preserved for multiple passes)
 
-    ; Check that argv[1] is not empty
+    cmp byte [flags], 0
+    jne .ps_flags
+
+    ; No flags: one line per character with all four representations
+.ps_default:
+    mov al, [r14]
     cmp al, 0
-    je usage                ; empty string, show usage
-
-    ; Check ASCII range (0..127)
+    je .ps_done
     cmp al, 127
-    ja err_out_of_ascii_bounds      ; Error: Out of ASCII Bounds (0..127)
-
-    movzx r12, al           ; Save original value in r12
-    xor r15, r15            ; Reset item counter for maybe_print
-
-    cmp byte [flags], 0     ; Check if any output flags are set
-    jne .print_selected
-
-    ; No flags: print all four representations (default)
+    ja err_out_of_ascii_bounds
+    movzx r12, al
     repr ten, 10
     print separator
     repr hex, 16
@@ -326,15 +307,68 @@ process_char_arg:
     print separator
     repr bin, 2
     print newline
+    inc r14
+    jmp .ps_default
+
+    ; Flags set: one line per set flag
+.ps_flags:
+    test byte [flags], FLAG_DEC
+    jz .psf_hex
+    call .ps_line_dec
+
+.psf_hex:
+    test byte [flags], FLAG_HEX
+    jz .psf_oct
+    call .ps_line_hex
+
+.psf_oct:
+    test byte [flags], FLAG_OCT
+    jz .psf_bin
+    call .ps_line_oct
+
+.psf_bin:
+    test byte [flags], FLAG_BIN
+    jz .psf_done
+    call .ps_line_bin
+
+.psf_done:
+.ps_done:
+    pop r14
     ret
 
-.print_selected:
-    maybe_print FLAG_DEC, ten, 10
-    maybe_print FLAG_HEX, hex, 16
-    maybe_print FLAG_OCT, oct, 8
-    maybe_print FLAG_BIN, bin, 2
+; Macro to define a per-flag line printer
+; %1 = short name (dec, hex, oct, bin)
+; %2 = repr prefix (ten, hex, oct, bin)
+; %3 = base (10, 16, 8, 2)
+%macro def_ps_line 3
+.ps_line_%1:
+    push r14
+    xor r15, r15
+%%loop:
+    mov al, [r14]
+    cmp al, 0
+    je %%done
+    cmp al, 127
+    ja err_out_of_ascii_bounds
+    movzx r12, al
+    cmp r15, 0
+    je %%no_sep
+    print separator
+%%no_sep:
+    repr %2, %3
+    inc r15
+    inc r14                 ; advance to next character
+    jmp %%loop
+%%done:
+    pop r14
     print newline
     ret
+%endmacro
+
+def_ps_line dec, ten, 10
+def_ps_line hex, hex, 16
+def_ps_line oct, oct, 8
+def_ps_line bin, bin, 2
 
 ; ----------
 ; FULL-TABLE
