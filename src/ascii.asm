@@ -85,8 +85,9 @@ section .data
 
 section .bss
     buf resb 32                         ; Reserve 32 bytes for digits and prefixes
-    arg_values resq 128                ; Reserve space for up to 128 argument values (8 bytes each)
     flags resb 1                        ; Reserve 1 byte for flags
+    values resb 1024                    ; Buffer for up to 128 value pointers (8 bytes each)
+    value_count resb 1                  ; How many values were stored
 
 ; ------
 ; MACROS
@@ -126,6 +127,7 @@ _start:
     ; PROCESS COMMAND-LINE ARGUMENTS
     ; ------------------------------
 
+    mov byte [value_count], 0       ; Initialize value_count to 0
     lea r14, [rsp + 16]             ; Load address of argv[1] into r14 (argv starts at rsp + 8, argv[1] is at rsp + 16)
     mov r15, 1                      ; Initialize argument index to 1
 
@@ -247,9 +249,11 @@ _start:
         jmp err_unknown_flag        ; Unknown flag, show usage message
 
         .store_value:
-            ; Store the value in arg_values
-            mov [arg_values + r15*8], rdi   ; Store the pointer to the argument string
-            jmp .next_arg                   ; Move to the next argument
+            movzx rbx, byte [value_count]       ; Load current value_count into rbx
+            lea rcx, [values + rbx * 8]         ; Calculate the address to store the value pointer
+            mov [rcx], rdi                      ; Store the argument pointer (rdi) into values[rbx]
+            inc byte [value_count]              ; Increment value_count
+            jmp .next_arg                       ; Move to the next argument
 
         .next_arg:
             add r14, 8                  ; Move to the next argument pointer (argv[i] is 8 bytes apart)
