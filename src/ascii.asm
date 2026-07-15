@@ -94,6 +94,9 @@ section .data
     err_out_of_ascii_bounds_msg db "Error: Out of bounds for ASCII. Should be a valid ASCII character between 0 and 127", 0xA
     err_out_of_ascii_bounds_msg_len equ $ - err_out_of_ascii_bounds_msg
 
+    err_invalid_lookup_msg db "Error: Invalid numeric code. Expected a valid decimal, hex (0x), octal (0o), or binary (0b) number", 0xA
+    err_invalid_lookup_msg_len equ $ - err_invalid_lookup_msg
+
     ; COMMON
     ; ------
 
@@ -366,6 +369,7 @@ process_string:
     cmp al, 127
     ja err_out_of_ascii_bounds
     movzx r12, al
+    call print_char
     repr ten, 10
     print separator
     repr hex, 16
@@ -469,6 +473,10 @@ process_lookup:
         mov al, [r14]               ; Load the current character
         cmp al, 0                   ; Check for null terminator
         je .validate                ; If null terminator, validate the accumulated value
+        cmp al, '0'                 ; Check if character is a valid decimal digit
+        jb err_invalid_lookup       ; If less than '0', invalid
+        cmp al, '9'                 ; Check if character is a valid decimal digit
+        ja err_invalid_lookup       ; If greater than '9', invalid
         sub al, '0'                 ; Convert ASCII digit to numeric value
         movzx rax, al               ; Multiply the current accumulated value by 10 and add the new digit
         imul r12, 10                ; Multiply r12 by 10
@@ -483,13 +491,19 @@ process_lookup:
         mov al, [r14]               ; Load the current character
         cmp al, 0                   ; Check for null terminator
         je .validate                ; If null terminator, validate the accumulated value
+        cmp al, '0'                 ; Check if character is a valid hex digit
+        jb err_invalid_lookup       ; If less than '0', invalid
         cmp al, '9'                 ; Check if the character is a digit
-        jg .hex_alpha               ; If greater than '9', check if it's a letter (A-F or a-f)
-        sub al, '0'                 ; Convert ASCII digit to numeric value
-        jmp .hex_add                ; Add the digit to the accumulated value
-    .hex_alpha:
+        jle .hex_digit              ; If less/equal to '9', it's a valid digit
         or al, 0x20                 ; lowercase
+        cmp al, 'a'                 ; Check if character is a valid hex letter
+        jb err_invalid_lookup       ; If less than 'a', invalid (between '9' and 'a')
+        cmp al, 'f'                 ; Check if character is a valid hex letter
+        ja err_invalid_lookup       ; If greater than 'f', invalid
         sub al, 'a' - 10            ; Convert ASCII letter to numeric value (A=10, B=11, ..., F=15)
+        jmp .hex_add
+    .hex_digit:
+        sub al, '0'                 ; Convert ASCII digit to numeric value
     .hex_add:
         shl r12, 4                  ; Shift the accumulated value left by 4 bits (multiply by 16)
         movzx rax, al               ; Move the numeric value of the current character into rax
@@ -504,6 +518,10 @@ process_lookup:
         mov al, [r14]               ; Load the current character
         cmp al, 0                   ; Check for null terminator
         je .validate                ; If null terminator, validate the accumulated value
+        cmp al, '0'                 ; Check if character is a valid octal digit
+        jb err_invalid_lookup       ; If less than '0', invalid
+        cmp al, '7'                 ; Check if character is a valid octal digit
+        ja err_invalid_lookup       ; If greater than '7', invalid
         sub al, '0'                 ; Convert ASCII digit to numeric value
         movzx rax, al               ; Move the numeric value of the current character into rax
         shl r12, 3                  ; Shift the accumulated value left by 3 bits (multiply by 8)
@@ -518,6 +536,10 @@ process_lookup:
         mov al, [r14]               ; Load the current character
         cmp al, 0                   ; Check for null terminator
         je .validate                ; If null terminator, validate the accumulated value
+        cmp al, '0'                 ; Check if character is a valid binary digit
+        jb err_invalid_lookup       ; If less than '0', invalid
+        cmp al, '1'                 ; Check if character is a valid binary digit
+        ja err_invalid_lookup       ; If greater than '1', invalid
         sub al, '0'                 ; Convert ASCII digit to numeric value
         movzx rax, al               ; Move the numeric value of the current character into rax
         shl r12, 1                  ; Shift the accumulated value left by 1 bit (multiply by 2)
@@ -621,6 +643,10 @@ err_unknown_flag:
 
 err_out_of_ascii_bounds:
     print err_out_of_ascii_bounds_msg
+    exit EXIT_FAILURE
+
+err_invalid_lookup:
+    print err_invalid_lookup_msg
     exit EXIT_FAILURE
 
 ; USAGE
