@@ -270,16 +270,16 @@ process_values:
     je done                             ; If no values, exit successfully
 
     lea r14, [values]                   ; Load the address of the values array into r14
-    xor rbx, rbx                         ; Initialize index to 0
+    xor r13, r13                         ; Initialize index to 0
 
     .value_loop:
-        cmp rbx, r15                     ; Compare index with value_count
+        cmp r13, r15                     ; Compare index with value_count
         je done                          ; If index equals value_count, all values have been processed
 
-        mov rdi, [r14 + rbx * 8]         ; Load the argument pointer (values[rbx]) into rdi
+        mov rdi, [r14 + r13 * 8]         ; Load the argument pointer (values[r13]) into rdi
         call process_char_arg            ; Process the character argument
 
-        inc rbx                          ; Increment index
+        inc r13                          ; Increment index
         jmp .value_loop                  ; Repeat the loop
 
 ; Validate and print the first character from argv[i]
