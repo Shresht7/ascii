@@ -42,6 +42,11 @@ $ ./ascii Hello --hex
 0x48 0x65 0x6C 0x6C 0x6F
 ```
 
+```sh
+$ ./ascii --lookup 65
+A    65 0x41 0o101 0b1000001
+```
+
 ### Help
 
 ```
