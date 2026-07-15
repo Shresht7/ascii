@@ -25,20 +25,24 @@ section .data
     ; USAGE
     ; -----
 
+    version_msg db "v0.2.0", 0xA
+    version_msg_len equ $ - version_msg
+
     usage_msg db "Usage: ascii <value> [value ...] | [flag]", 0xA, 0xA
               db "Display ASCII information for one or more values.", 0xA, 0xA
               db "Values can be:", 0xA
               db "  Characters:             A   Hello   (each character is processed individually)", 0xA
               db "  Numeric (--lookup):     65   0x41   0o101   0b1000001", 0xA, 0xA
               db "Flags:", 0xA
-              db "  -f, --full              Display the full ASCII table.", 0xA
-              db "  -h, --help              Display this help message.", 0xA
+              db "  -f, --full              Display the full ASCII table", 0xA
               db "  -d, --dec               Show decimal representation", 0xA
               db "  -x, --hex               Show hexadecimal representation", 0xA
               db "  -o, --oct               Show octal representation", 0xA
               db "  -b, --bin               Show binary representation", 0xA
               db "  -c, --char              Show character glyph", 0xA
               db "  -l, --lookup            Treat values as numeric codes", 0xA, 0xA
+              db "  -h, --help              Display this help message", 0xA
+              db "  -v, --version           Display version information", 0xA, 0xA
               db "Examples:", 0xA
               db "  ascii A                 Show all representations of 'A'", 0xA
               db "  ascii Hello             Process each character in 'Hello'", 0xA
@@ -52,7 +56,9 @@ section .data
 
     flag_help db "--help", 0
     flag_h db "-h", 0
-    
+    flag_version db "--version", 0
+    flag_v db "-v", 0
+
     flag_full db "--full", 0
     flag_f db "-f", 0
 
@@ -185,6 +191,20 @@ _start:
         call strcmp                 ; Compare the argument with "--help"
         cmp rax, 0                  ; Check if they are equal
         je usage                    ; If equal, show usage message
+
+        ; Check for -v flag
+        mov rdi, [r14]              ; Load the current argument pointer into rdi
+        mov rsi, flag_v             ; Load the address of "-v" into rsi
+        call strcmp                 ; Compare the argument with "-v"
+        cmp rax, 0                  ; Check if they are equal
+        je version                  ; If equal, show version message
+
+        ; Check for --version flag
+        mov rdi, [r14]              ; Load the current argument pointer into rdi
+        mov rsi, flag_version       ; Load the address of "--version" into rsi
+        call strcmp                 ; Compare the argument with "--version"
+        cmp rax, 0                  ; Check if they are equal
+        je version                  ; If equal, show version message
 
         ; Check for -f flag
         mov rdi, [r14]              ; Load the current argument pointer into rdi
@@ -662,6 +682,11 @@ err_usage:
 ; Print the usage message and exit
 usage:
     print usage_msg
+    exit EXIT_SUCCESS
+
+; Print the version message and exit
+version:
+    print version_msg
     exit EXIT_SUCCESS
 
 ; ------------

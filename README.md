@@ -59,14 +59,15 @@ Values can be:
   Numeric (--lookup):       65   0x41   0o101   0b1000001
 
 Flags:
-  -f, --full                Display the full ASCII table.
-  -h, --help                Display this help message.
+  -f, --full                Display the full ASCII table
   -d, --dec                 Show decimal representation
   -x, --hex                 Show hexadecimal representation
   -o, --oct                 Show octal representation
   -b, --bin                 Show binary representation
   -c, --char                Show character glyph
   -l, --lookup              Treat values as numeric codes
+  -h, --help                Display this help message
+  -v, --version             Display the version number
 
 Examples:
   ascii A                   Show all representations of 'A'
