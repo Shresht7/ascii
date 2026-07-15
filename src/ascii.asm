@@ -238,10 +238,10 @@ _start:
 
         .check_oct_short:
         mov rdi, [r14]              ; Load the current argument pointer into rdi
-        mov rsi, flag_o              ; Load the address of "-o" into rsi
+        mov rsi, flag_o             ; Load the address of "-o" into rsi
         call strcmp                 ; Compare the argument with "-o"
         cmp rax, 0                  ; Check if they are equal
-        jne .unknown_flag           ; If not equal, it's an unknown flag
+        jne err_unknown_flag        ; If not equal, it's an unknown flag
         or byte [flags], FLAG_OCT   ; Set the octal flag
         jmp .next_arg               ; Move to the next argument
 
@@ -265,7 +265,22 @@ _start:
             jmp process_values
 
 process_values:
-    ; TODO: Implement processing of values based on flags set in [flags]
+    movzx r15, byte [value_count]       ; Load value_count into r15
+    cmp r15, 0                          ; Check if there are any values to process
+    je done                             ; If no values, exit successfully
+
+    lea r14, [values]                   ; Load the address of the values array into r14
+    xor rbx, rbx                         ; Initialize index to 0
+
+    .value_loop:
+        cmp rbx, r15                     ; Compare index with value_count
+        je done                          ; If index equals value_count, all values have been processed
+
+        mov rdi, [r14 + rbx * 8]         ; Load the argument pointer (values[rbx]) into rdi
+        call process_char_arg            ; Process the character argument
+
+        inc rbx                          ; Increment index
+        jmp .value_loop                  ; Repeat the loop
 
 ; Validate and print the first character from argv[i]
 ; rdi = pointer to the argument string
