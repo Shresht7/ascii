@@ -26,34 +26,21 @@ In digital communication, computers process information in binary code (`0`s and
 Run the executable followed by one or more values:
 
 ```sh
-./ascii S
-```
-
-```sh
+$ ./ascii S
 S    83 0x53 0o123 0b1010011
 ```
 
 ```sh
-./ascii A B C
-```
-
-```sh
+$ ./ascii A B C
 A    65 0x41 0o101 0b1000001
 B    66 0x42 0o102 0b1000010
 C    67 0x43 0o103 0b1000011
 ```
 
 ```sh
-./ascii Hello --hex
-```
-
-```sh
+$ ./ascii Hello --hex
 0x48 0x65 0x6C 0x6C 0x6F
 ```
-
-> **Note**
->
-> Each character in every argument is processed individually.
 
 ### Help
 
@@ -83,16 +70,6 @@ Examples:
   ascii Hello --hex     Show hex for each byte in 'Hello'
   ascii --lookup 65     Look up decimal code 65
   ascii -l 0x41 --char  Look up hex 0x41, show glyph only
-```
-
-### Flags
-
-All flags must be passed immediately after the executable name.
-
-```sh
-./ascii -h  # Help message
-./ascii -f  # Full ASCII table
-./ascii --lookup 65 --hex --bin  # Filtered lookup output
 ```
 
 ---
