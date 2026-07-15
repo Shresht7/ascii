@@ -1,5 +1,5 @@
-#ifndef SYS_CALLS_ASM
-#define SYS_CALLS_ASM
+%ifndef SYS_CALLS_ASM
+%define SYS_CALLS_ASM
 
 ; -----------
 ; DEFINITIONS
@@ -35,4 +35,4 @@ EXIT_FAILURE    equ 1
     syscall
 %endmacro
 
-#endif
+%endif
