@@ -45,10 +45,10 @@ EXIT_FAILURE    equ 1
 ; INITIALIZED DATA
 ; ----------------
 
-FLAG_DEC equ 1 ; 0001
-FLAG_BIN equ 2 ; 0010
-FLAG_HEX equ 4 ; 0100
-FLAG_OCT equ 8 ; 1000
+FLAG_DEC equ 1 ; 0001 - This flag is used to indicate that the decimal representation should be printed.
+FLAG_BIN equ 2 ; 0010 - This flag is used to indicate that the binary representation should be printed.
+FLAG_HEX equ 4 ; 0100 - This flag is used to indicate that the hexadecimal representation should be printed.
+FLAG_OCT equ 8 ; 1000 - This flag is used to indicate that the octal representation should be printed.
 
 section .data
 
@@ -64,25 +64,23 @@ section .data
     ; FLAGS
     ; -----
 
-    arg_help db "--help", 0
-    arg_full db "--full", 0
-    arg_h db "-h", 0
-    arg_f db "-f", 0
+    flag_help db "--help", 0
+    flag_h db "-h", 0
+    
+    flag_full db "--full", 0
+    flag_f db "-f", 0
 
     arg_dec db "--dec", 0
-    arg_dec_short db "-d", 0
+    arg_d db "-d", 0
     arg_bin db "--bin", 0
-    arg_bin_short db "-b", 0
-    arg_hex db "--hex", 0
-    arg_hex_short db "-x", 0
+    arg_b db "-b", 0
+    flag_hex db "--hex", 0
+    arg_x db "-x", 0
     arg_oct db "--oct", 0
-    arg_oct_short db "-o", 0
+    arg_o db "-o", 0
 
-    newline db 0xA
-    newline_len equ $ - newline
-
-    separator db ' '
-    separator_len equ $ - separator
+    ; PREFIXES
+    ; --------
 
     ten db ""           ; dec is a keyword so... ten it is
     ten_len equ 0
@@ -96,8 +94,20 @@ section .data
     bin db "0b"
     bin_len equ $ - bin
 
+    ; ERRORS
+    ; ------
+
     err_out_of_ascii_bounds_msg db "Error: Out of bounds for ASCII. Should be a valid ASCII character between 0 and 127", 0xA
     err_out_of_ascii_bounds_msg_len equ $ - err_out_of_ascii_bounds_msg
+
+    ; COMMON
+    ; ------
+
+    newline db 0xA
+    newline_len equ $ - newline
+
+    separator db ' '
+    separator_len equ $ - separator
 
 ; ------------------
 ; UNINITIALIZED DATA
@@ -149,26 +159,26 @@ _start:
 
         ; --help or -h flag check
         mov rdi, [r14]              ; Load the current argument pointer into rdi
-        mov rsi, arg_help           ; Load the address of "--help" into rsi
+        mov rsi, flag_help           ; Load the address of "--help" into rsi
         call strcmp                 ; Compare the argument with "--help"
         cmp rax, 0                  ; Check if they are equal
         je usage                    ; If equal, show usage message
 
         mov rdi, [r14]              ; Load the current argument pointer into rdi
-        mov rsi, arg_h              ; Load the address of "-h" into rsi
+        mov rsi, flag_h              ; Load the address of "-h" into rsi
         call strcmp                 ; Compare the argument with "-h"
         cmp rax, 0                  ; Check if they are equal
         je usage                    ; If equal, show usage message
 
         ; --full or -f flag check
         mov rdi, [r14]              ; Load the current argument pointer into rdi
-        mov rsi, arg_full           ; Load the address of "--full" into rsi
+        mov rsi, flag_full           ; Load the address of "--full" into rsi
         call strcmp                 ; Compare the argument with "--full"
         cmp rax, 0                  ; Check if they are equal
         je full_table               ; If equal, display the full ASCII table
 
         mov rdi, [r14]              ; Load the current argument pointer into rdi
-        mov rsi, arg_f              ; Load the address of "-f" into rsi
+        mov rsi, flag_f              ; Load the address of "-f" into rsi
         call strcmp                 ; Compare the argument with "-f"
         cmp rax, 0                  ; Check if they are equal
         je full_table               ; If equal, display the full ASCII table
@@ -184,7 +194,7 @@ _start:
 
         .check_dec_short:
             mov rdi, [r14]              ; Load the current argument pointer into rdi
-            mov rsi, arg_dec_short      ; Load the address of "-d" into rsi
+            mov rsi, arg_d      ; Load the address of "-d" into rsi
             call strcmp                 ; Compare the argument with "-d"
             cmp rax, 0                  ; Check if they are equal
             jne .check_bin              ; If not equal, check for binary flag
@@ -202,7 +212,7 @@ _start:
 
         .check_bin_short:
             mov rdi, [r14]              ; Load the current argument pointer into rdi
-            mov rsi, arg_bin_short      ; Load the address of "-b" into rsi
+            mov rsi, arg_b      ; Load the address of "-b" into rsi
             call strcmp                 ; Compare the argument with "-b"
             cmp rax, 0                  ; Check if they are equal
             jne .check_hex              ; If not equal, check for hexadecimal flag
@@ -211,7 +221,7 @@ _start:
 
         .check_hex:
             mov rdi, [r14]              ; Load the current argument pointer into rdi
-            mov rsi, arg_hex            ; Load the address of "--hex" into rsi
+            mov rsi, flag_hex            ; Load the address of "--hex" into rsi
             call strcmp                 ; Compare the argument with "--hex"
             cmp rax, 0                  ; Check if they are equal
             jne .check_hex_short        ; If not equal, check for short version
@@ -220,7 +230,7 @@ _start:
 
         .check_hex_short:
             mov rdi, [r14]              ; Load the current argument pointer into rdi
-            mov rsi, arg_hex_short      ; Load the address of "-x" into rsi
+            mov rsi, arg_x      ; Load the address of "-x" into rsi
             call strcmp                 ; Compare the argument with "-x"
             cmp rax, 0                  ; Check if they are equal
             jne .check_oct              ; If not equal, check for octal flag
@@ -238,7 +248,7 @@ _start:
 
         .check_oct_short:
             mov rdi, [r14]              ; Load the current argument pointer into rdi
-            mov rsi, arg_oct_short      ; Load the address of "-o" into rsi
+            mov rsi, arg_o      ; Load the address of "-o" into rsi
             call strcmp                 ; Compare the argument with "-o"
             cmp rax, 0                  ; Check if they are equal
             jne .unknown_flag           ; If not equal, it's an unknown flag
