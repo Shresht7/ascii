@@ -23,14 +23,14 @@ In digital communication, computers process information in binary code (`0`s and
 
 ## Usage
 
-Run the executable followed by the character you wish to see the encoding of:
+Run the executable followed by one or more values:
 
 ```sh
 ./ascii S
 ```
 
 ```sh
-83 0x53 0o123 0b1010011
+S    83 0x53 0o123 0b1010011
 ```
 
 ```sh
@@ -38,34 +38,61 @@ Run the executable followed by the character you wish to see the encoding of:
 ```
 
 ```sh
-65 0x41 0o101 0b1000001
-66 0x42 0o102 0b1000010
-67 0x43 0o103 0b1000011
+A    65 0x41 0o101 0b1000001
+B    66 0x42 0o102 0b1000010
+C    67 0x43 0o103 0b1000011
+```
+
+```sh
+./ascii Hello --hex
+```
+
+```sh
+0x48 0x65 0x6C 0x6C 0x6F
 ```
 
 > **Note**
 >
-> The tool only considers the first character of each argument.
+> Each character in every argument is processed individually.
 
 ### Help
 
 ```
-Usage: ascii <character> [character ...] | [flag]
+Usage: ascii <value> [value ...] | [flag]
+
+Display ASCII information for one or more values.
+
+Values can be:
+  Characters:        A   Hello   (each character is processed individually)
+  Numeric (--lookup): 65   0x41   0o101   0b1000001
 
 Flags:
-  -f, --full      Display the full ASCII table.
-  -h, --help      Display this help message.
+  -f, --full        Display the full ASCII table.
+  -h, --help        Display this help message.
+  -d, --dec         Show decimal representation
+  -x, --hex         Show hexadecimal representation
+  -o, --oct         Show octal representation
+  -b, --bin         Show binary representation
+  -c, --char        Show character glyph
+  -l, --lookup      Treat values as numeric codes
+
+Examples:
+  ascii A               Show all representations of 'A'
+  ascii Hello           Process each character in 'Hello'
+  ascii A B --hex       Show hex only for 'A' and 'B'
+  ascii Hello --hex     Show hex for each byte in 'Hello'
+  ascii --lookup 65     Look up decimal code 65
+  ascii -l 0x41 --char  Look up hex 0x41, show glyph only
 ```
 
 ### Flags
 
 All flags must be passed immediately after the executable name.
 
-Character mode accepts multiple arguments and prints one line per argument.
-
 ```sh
-./ascii -h  # For help message
-./ascii -f  # Full ASCII Table
+./ascii -h  # Help message
+./ascii -f  # Full ASCII table
+./ascii --lookup 65 --hex --bin  # Filtered lookup output
 ```
 
 ---
@@ -110,7 +137,7 @@ ld ./obj/ascii.o -o ./out/ascii
 ```
 
 ```
-65 0x41 0o101 0b1000001
+A    65 0x41 0o101 0b1000001
 ```
 
 ---
