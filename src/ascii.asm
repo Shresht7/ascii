@@ -12,10 +12,13 @@
 ; INITIALIZED DATA
 ; ----------------
 
-FLAG_DEC equ 1 ; 0001 - Indicates that the decimal representation should be printed
-FLAG_BIN equ 2 ; 0010 - Indicates that the binary representation should be printed
-FLAG_HEX equ 4 ; 0100 - Indicates that the hexadecimal representation should be printed
-FLAG_OCT equ 8 ; 1000 - Indicates that the octal representation should be printed
+FLAG_DEC equ 1                  ; 0000 0001 - Print decimal representation
+FLAG_BIN equ 2                  ; 0000 0010 - Print binary representation
+FLAG_HEX equ 4                  ; 0000 0100 - Print hexadecimal representation
+FLAG_OCT equ 8                  ; 0000 1000 - Print octal representation
+FLAG_CHAR equ 16                ; 0001 0000 - Print character glyph
+FLAG_LOOKUP equ 32              ; 0010 0000 - Interpret values as numeric codes
+FLAG_OUTPUT_MASK equ FLAG_DEC | FLAG_BIN | FLAG_HEX | FLAG_OCT | FLAG_CHAR
 
 section .data
 
@@ -45,6 +48,11 @@ section .data
     flag_x db "-x", 0
     flag_oct db "--oct", 0
     flag_o db "-o", 0
+
+    flag_lookup db "--lookup", 0
+    flag_l db "-l", 0
+    flag_char db "--char", 0
+    flag_c db "-c", 0
 
     ; PREFIXES
     ; --------
@@ -241,12 +249,48 @@ _start:
         mov rsi, flag_o             ; Load the address of "-o" into rsi
         call strcmp                 ; Compare the argument with "-o"
         cmp rax, 0                  ; Check if they are equal
-        jne err_unknown_flag        ; If not equal, it's an unknown flag
+        jne .check_lookup           ; If not equal, check for lookup flag
         or byte [flags], FLAG_OCT   ; Set the octal flag
         jmp .next_arg               ; Move to the next argument
 
+        .check_lookup:
+        mov rdi, [r14]                  ; Load the current argument pointer into rdi
+        mov rsi, flag_lookup            ; Load the address of "--lookup" into rsi
+        call strcmp                     ; Compare the argument with "--lookup"
+        cmp rax, 0                      ; Check if they are equal
+        jne .check_lookup_short         ; If not equal, check for short version
+        or byte [flags], FLAG_LOOKUP    ; Set the lookup flag
+        jmp .next_arg                   ; Move to the next argument
+
+        .check_lookup_short:
+        mov rdi, [r14]                  ; Load the current argument pointer into rdi
+        mov rsi, flag_l                 ; Load the address of "-l" into rsi
+        call strcmp                     ; Compare the argument with "-l"
+        cmp rax, 0                      ; Check if they are equal
+        jne .check_char                 ; If not equal, check for char flag
+        or byte [flags], FLAG_LOOKUP    ; Set the lookup flag
+        jmp .next_arg
+
+        .check_char:
+        mov rdi, [r14]                  ; Load the current argument pointer into rdi
+        mov rsi, flag_char              ; Load the address of "--char" into rsi
+        call strcmp                     ; Compare the argument with "--char"
+        cmp rax, 0                      ; Check if they are equal
+        jne .check_char_short           ; If not equal, check for short version
+        or byte [flags], FLAG_CHAR      ; Set the char flag
+        jmp .next_arg                   ; Move to the next argument
+
+        .check_char_short:
+        mov rdi, [r14]                  ; Load the current argument pointer into rdi
+        mov rsi, flag_c                 ; Load the address of "-c" into rsi
+        call strcmp                     ; Compare the argument with "-c"
+        cmp rax, 0                      ; Check if they are equal
+        jne err_unknown_flag            ; If not equal, it's an unknown flag
+        or byte [flags], FLAG_CHAR      ; Set the char flag
+        jmp .next_arg                   ; Move to the next argument
+
         ; If none of the known flags matched, it's an unknown flag
-        jmp err_unknown_flag        ; Unknown flag, show usage message
+        jmp err_unknown_flag
 
         .store_value:
             movzx rbx, byte [value_count]       ; Load current value_count into rbx
@@ -277,8 +321,15 @@ process_values:
         je done                          ; If index equals value_count, all values have been processed
 
         mov rdi, [r14 + r13 * 8]         ; Load the argument pointer (values[r13]) into rdi
-        call process_string              ; Process the entire string
+        test byte [flags], FLAG_LOOKUP   ; Check if lookup mode is enabled
+        jnz .do_lookup                   ; If lookup mode, call process_lookup
+        call process_string              ; Otherwise, process the entire string
+        jmp .next_value
 
+        .do_lookup:
+        call process_lookup              ; Process as numeric code
+
+        .next_value:
         inc r13                          ; Increment index
         jmp .value_loop                  ; Repeat the loop
 
@@ -369,6 +420,151 @@ def_ps_line dec, ten, 10
 def_ps_line hex, hex, 16
 def_ps_line oct, oct, 8
 def_ps_line bin, bin, 2
+
+; -----------
+; LOOKUP MODE
+; -----------
+
+; Treats each value as a numeric code and prints the matching ASCII character.
+; Supports decimal (default), hex (0xNN), octal (0oNN), and binary (0bNN) formats.
+process_lookup:
+    push r14                        ; Save r14 for later restoration
+    mov r14, rdi                    ; r14 = pointer to the argument string
+
+    ; Determine base from prefix
+    mov al, [r14]                   ; Check first character of the string
+    cmp al, '0'                     ; If first character is '0', check for known prefixes
+    jne .parse_dec                  ; If not '0', treat as decimal
+
+    mov al, [r14 + 1]               ; Check second character for known prefixes
+    cmp al, 'x'                     ; If second character is 'x', it's hex
+    je .parse_hex                   ; Jump to hex parsing
+    cmp al, 'o'                     ; If second character is 'o', it's octal
+    je .parse_oct                   ; Jump to octal parsing
+    cmp al, 'b'                     ; If second character is 'b', it's binary
+    je .parse_bin                   ; Jump to binary parsing
+
+    ; No known prefix after '0' — treat as decimal (e.g. "065")
+    jmp .parse_dec
+
+.parse_dec:
+    xor r12, r12                    ; Clear r12 to accumulate the decimal value
+    .dec_loop:
+        mov al, [r14]               ; Load the current character
+        cmp al, 0                   ; Check for null terminator
+        je .validate                ; If null terminator, validate the accumulated value
+        sub al, '0'                 ; Convert ASCII digit to numeric value
+        movzx rax, al               ; Multiply the current accumulated value by 10 and add the new digit
+        imul r12, 10                ; Multiply r12 by 10
+        add r12, rax                ; Add the new digit to r12
+        inc r14                     ; Advance to the next character
+        jmp .dec_loop               ; Repeat the loop for the next character
+
+.parse_hex:
+    add r14, 2                      ; Skip the "0x" prefix
+    xor r12, r12                    ; Clear r12 to accumulate the hexadecimal value
+    .hex_loop:
+        mov al, [r14]               ; Load the current character
+        cmp al, 0                   ; Check for null terminator
+        je .validate                ; If null terminator, validate the accumulated value
+        cmp al, '9'                 ; Check if the character is a digit
+        jg .hex_alpha               ; If greater than '9', check if it's a letter (A-F or a-f)
+        sub al, '0'                 ; Convert ASCII digit to numeric value
+        jmp .hex_add                ; Add the digit to the accumulated value
+    .hex_alpha:
+        or al, 0x20                 ; lowercase
+        sub al, 'a' - 10            ; Convert ASCII letter to numeric value (A=10, B=11, ..., F=15)
+    .hex_add:
+        shl r12, 4                  ; Shift the accumulated value left by 4 bits (multiply by 16)
+        movzx rax, al               ; Move the numeric value of the current character into rax
+        add r12, rax                ; Add the current digit to the accumulated value
+        inc r14                     ; Advance to the next character
+        jmp .hex_loop               ; Repeat the loop for the next character
+
+.parse_oct:
+    add r14, 2                      ; Skip the "0o" prefix
+    xor r12, r12                    ; Clear r12 to accumulate the octal value
+    .oct_loop:
+        mov al, [r14]               ; Load the current character
+        cmp al, 0                   ; Check for null terminator
+        je .validate                ; If null terminator, validate the accumulated value
+        sub al, '0'                 ; Convert ASCII digit to numeric value
+        movzx rax, al               ; Move the numeric value of the current character into rax
+        shl r12, 3                  ; Shift the accumulated value left by 3 bits (multiply by 8)
+        add r12, rax                ; Add the current digit to the accumulated value
+        inc r14                     ; Advance to the next character
+        jmp .oct_loop               ; Repeat the loop for the next character
+
+.parse_bin:
+    add r14, 2                      ; Skip the "0b" prefix
+    xor r12, r12                    ; Clear r12 to accumulate the binary value
+    .bin_loop:
+        mov al, [r14]               ; Load the current character
+        cmp al, 0                   ; Check for null terminator
+        je .validate                ; If null terminator, validate the accumulated value
+        sub al, '0'                 ; Convert ASCII digit to numeric value
+        movzx rax, al               ; Move the numeric value of the current character into rax
+        shl r12, 1                  ; Shift the accumulated value left by 1 bit (multiply by 2)
+        add r12, rax                ; Add the current digit to the accumulated value
+        inc r14                     ; Advance to the next character
+        jmp .bin_loop               ; Repeat the loop for the next character
+
+.validate:
+    cmp r12, 127                    ; Check if the accumulated value is greater than 127
+    ja err_out_of_ascii_bounds      ; If greater than 127, it's out of bounds for ASCII. Show error message and exit
+
+    ; Determine output format
+    test byte [flags], FLAG_OUTPUT_MASK     ; Check if any output flags are set
+    jnz .pl_selected                        ; If any output flags are set, jump to the selected output printing routine
+
+    ; No output flags: print glyph + all four representations (like full table)
+    mov rdi, r12
+    call print_char
+    repr ten, 10
+    print separator
+    repr hex, 16
+    print separator
+    repr oct, 8
+    print separator
+    repr bin, 2
+    print newline
+    pop r14
+    ret
+
+.pl_selected:
+    test byte [flags], FLAG_CHAR            ; Check if the character glyph flag is set
+    jz .pl_dec                              ; If not set, jump to decimal representation printing
+    mov rdi, r12                            ; Move the ASCII value to rdi for printing
+    call print_char                         ; Print the character glyph
+    print newline                           ; Print a newline after the character glyph
+
+.pl_dec:
+    test byte [flags], FLAG_DEC             ; Check if the decimal representation flag is set
+    jz .pl_hex                              ; If not set, jump to hexadecimal representation printing
+    repr ten, 10                            ; Print the decimal representation
+    print newline                           ; Print a newline after the decimal representation
+
+.pl_hex:
+    test byte [flags], FLAG_HEX             ; Check if the hexadecimal representation flag is set
+    jz .pl_oct                              ; If not set, jump to octal representation printing
+    repr hex, 16                            ; Print the hexadecimal representation
+    print newline                           ; Print a newline after the hexadecimal representation
+
+.pl_oct:
+    test byte [flags], FLAG_OCT             ; Check if the octal representation flag is set
+    jz .pl_bin                              ; If not set, jump to binary representation printing
+    repr oct, 8                             ; Print the octal representation
+    print newline                           ; Print a newline after the octal representation
+
+.pl_bin:
+    test byte [flags], FLAG_BIN             ; Check if the binary representation flag is set
+    jz .pl_done                             ; If not set, jump to done
+    repr bin, 2                             ; Print the binary representation
+    print newline                           ; Print a newline after the binary representation
+
+.pl_done:
+    pop r14             ; Restore r14
+    ret                 ; Return from process_lookup
 
 ; ----------
 ; FULL-TABLE
